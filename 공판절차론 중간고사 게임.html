@@ -1,0 +1,1229 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>공판절차론 중간고사</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: full-screen 3D lecture room (first-person, seated) with the exam sheet lying on the desk; burgundy block-game HUD. Single deliberate look (no theme switch). */
+:root{
+  --room:#2b0a16;
+  --burg:#b72654;   /* CBNU Red (PANTONE 7425C, R183 G38 B84) */
+  --burg-d:#7a1638;
+  --burg-l:#d4577f;
+  --gold:#e9c46a;
+  --cream:#fbf6ea;
+  --paper:#fbf7ec;
+  --paper-line:#eadfcf;
+  --ink:#1f1a19;
+  --ink-soft:#64554f;
+  --redpen:#d0213f;
+  --bluepen:#1f4fb5;
+  --ok:#2f9e5b;
+  --bad:#d0213f;
+  --f-ui:"Jua","Gowun Dodum",system-ui,sans-serif;
+  --f-body:"Gowun Dodum",system-ui,sans-serif;
+  --f-paper:"Nanum Myeongjo","Batang",serif;
+  --f-pen:"Nanum Pen Script","Gowun Dodum",cursive;
+  color-scheme:dark;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--room);color:var(--cream);font-family:var(--f-body);overflow:hidden}
+#app{position:fixed;inset:0;overflow:hidden}
+#scene{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#scene.grab{cursor:grab}#scene.grabbing{cursor:grabbing}
+
+/* HUD */
+.hud{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;z-index:5}
+.hud-group{display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}
+.chip{font-family:var(--f-ui);background:var(--burg-d);color:var(--cream);border:3px solid #2a0613;border-radius:10px;padding:6px 10px;font-size:15px;box-shadow:0 4px 0 #2a0613;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip b{color:var(--gold);font-weight:400}
+.chip.hot{background:var(--redpen)}
+.btn{font-family:var(--f-ui);font-size:15px;border:3px solid #2a0613;border-radius:10px;padding:7px 12px;background:var(--burg);color:var(--cream);box-shadow:0 4px 0 #2a0613;cursor:pointer;transition:transform .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #2a0613}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn.light{background:var(--cream);color:var(--burg-d)}
+.btn.gold{background:var(--gold);color:#2a0d14}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* speech bubble */
+#bubble{position:absolute;z-index:4;max-width:min(320px,72vw);background:var(--cream);color:#1d1213;border:3px solid var(--burg-d);border-radius:14px;padding:8px 12px;font-family:var(--f-ui);font-size:16px;line-height:1.35;box-shadow:0 4px 0 var(--burg-d);transform:translate(-50%,-100%);pointer-events:none}
+#bubble::after{content:"";position:absolute;left:50%;bottom:-12px;margin-left:-8px;border:8px solid transparent;border-top-color:var(--burg-d)}
+#bubble .who{display:block;font-size:12px;color:var(--burg);margin-bottom:2px}
+
+/* exam paper */
+#paperWrap{position:absolute;left:0;right:0;bottom:0;height:min(60%,690px);display:flex;justify-content:center;align-items:flex-end;perspective:1400px;z-index:3;pointer-events:none;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+#paper{pointer-events:auto;width:min(800px,100%);height:100%;background:repeating-linear-gradient(to bottom,transparent 0 31px,var(--paper-line) 31px 32px),var(--paper);color:var(--ink);border-radius:6px 6px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.25);transform-origin:50% 100%;transform:rotateX(9deg);transition:transform .45s cubic-bezier(.3,.8,.3,1);display:flex;flex-direction:column;overflow:hidden}
+#paper.down{transform:rotateX(9deg) translateY(82%)}
+.band{background:var(--burg);color:var(--cream);font-family:var(--f-paper);font-weight:700;font-size:12px;letter-spacing:.08em;padding:5px 18px;display:flex;justify-content:space-between;gap:8px}
+.band span:last-child{font-weight:400;opacity:.85}
+.sheet-head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:10px 18px 8px;border-bottom:2px solid var(--burg);background:var(--paper)}
+.sheet-head h2{margin:0;font-family:var(--f-paper);font-weight:800;font-size:clamp(16px,2.6vw,21px);color:var(--burg-d);text-wrap:balance}
+.sheet-head small{display:block;font-family:var(--f-paper);color:var(--ink-soft);font-size:12px;margin-top:2px}
+.idbox{display:flex;border:1.5px solid var(--burg);font-family:var(--f-paper);font-size:12px}
+.idbox span{padding:3px 8px;border-right:1.5px solid var(--burg)}
+.idbox span:last-child{border-right:0;font-family:var(--f-pen);font-size:20px;color:var(--bluepen);min-width:70px;line-height:1}
+.sheet-body{flex:1;overflow:auto;padding:12px 22px 8px;min-height:0}
+.part{font-family:var(--f-paper);font-weight:700;font-size:13px;color:var(--burg);letter-spacing:.04em;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.part em{font-style:normal;font-weight:400;color:var(--ink-soft)}
+.qno{font-family:var(--f-paper);font-weight:800;font-size:17px;margin-right:6px;color:var(--burg-d)}
+.qtext{font-family:var(--f-paper);font-size:clamp(15px,2.2vw,18px);line-height:1.9;margin:0 0 12px;word-break:keep-all;overflow-wrap:break-word}
+.case{font-family:var(--f-paper);font-size:13px;color:var(--ink-soft);margin:0 0 6px}
+.ox{display:flex;gap:28px;justify-content:center;margin:4px 0 8px}
+.oxb{width:88px;height:68px;border:2px dashed #c9b7a3;background:transparent;border-radius:10px;font-family:var(--f-paper);font-weight:800;font-size:40px;color:var(--ink);cursor:pointer;position:relative}
+.oxb:hover{background:rgba(123,30,51,.05)}
+.oxb:focus-visible{outline:3px solid var(--burg);outline-offset:2px}
+.oxb.sel::after{content:"";position:absolute;inset:-4px -8px;border:4px solid var(--redpen);border-radius:50%;transform:rotate(-8deg);opacity:.9}
+.blank{display:inline-block;text-indent:0;font-family:var(--f-pen);font-size:20px;line-height:1.1;height:1.25em;color:var(--bluepen);border:0;border-bottom:1.5px solid var(--ink);background:rgba(31,79,181,.05);padding:0 3px;margin:0 2px;vertical-align:baseline;max-width:100%}
+.blank::placeholder{font-family:var(--f-paper);font-size:12px;color:#9a8f86}
+.blank:focus{outline:none;background:rgba(31,79,181,.14)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink-soft)}
+.memo{margin-top:10px;background:#fff6c9;border:1px solid #e5d48a;border-radius:4px;padding:10px 14px 10px;font-family:var(--f-pen);font-size:22px;line-height:1.25;color:#2a2a6a;max-width:62ch;transform:rotate(-.6deg);box-shadow:2px 3px 0 rgba(0,0,0,.08)}
+.memo-h{display:block;font-family:var(--f-ui);font-size:12px;color:var(--burg);letter-spacing:.04em;margin-bottom:2px}
+.memo-s{display:block;font-size:19px;color:#55557a;margin-top:2px}
+.memo .cho{font-family:var(--f-paper);font-weight:800;font-size:18px;letter-spacing:.14em;color:var(--burg-d)}
+.brand{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.logo{flex:none;width:104px;height:122px;background:var(--cream);border:3px solid #2a0613;border-radius:14px;display:grid;place-items:center;box-shadow:0 4px 0 #2a0613}
+.logo img{width:82px;height:auto;display:block}
+.hintbtn{font-family:var(--f-ui);font-size:14px;border:2px solid var(--burg);background:var(--cream);color:var(--burg);border-radius:999px;padding:4px 12px;cursor:pointer}
+.hintbtn:focus-visible{outline:3px solid var(--burg);outline-offset:2px}
+.hintbtn[disabled]{opacity:.4;cursor:default}
+.hintbox{margin-top:8px;background:#f6e6e9;border:1.5px solid var(--burg-l);border-left:6px solid var(--burg);border-radius:8px;padding:8px 12px;font-size:14px;line-height:1.55;color:#3b1520;max-width:64ch}
+.hintbox b{font-family:var(--f-ui);font-weight:400;color:var(--burg)}
+.hintbox .cho{font-family:var(--f-paper);font-weight:800;font-size:18px;letter-spacing:.12em;color:var(--burg-d)}
+.sheet-foot{border-top:1.5px solid var(--paper-line);padding:8px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;background:var(--paper)}
+.grid{display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
+.cell{font-family:var(--f-body);font-size:11px;height:22px;border:1px solid #d6c6b4;background:#fffdf7;color:var(--ink-soft);border-radius:3px;cursor:pointer;padding:0;font-variant-numeric:tabular-nums}
+.cell.done{background:#f1dfe3;border-color:var(--burg-l);color:var(--burg-d)}
+.cell.cur{outline:2px solid var(--burg);outline-offset:0}
+.cell.fb{border-style:dashed}
+.navrow{display:flex;gap:8px;justify-content:space-between;align-items:center}
+.navrow .mid{font-family:var(--f-paper);font-size:13px;color:var(--ink-soft)}
+.pbtn{font-family:var(--f-ui);font-size:15px;border:2px solid var(--burg);background:#fff;color:var(--burg-d);border-radius:8px;padding:6px 14px;cursor:pointer}
+.pbtn.submit{background:var(--burg);color:var(--cream)}
+.pbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pbtn[disabled]{opacity:.35;cursor:default}
+@media (max-width:560px){
+  #paperWrap{height:66%}
+  .grid{grid-template-columns:repeat(20,28px);overflow-x:auto;padding-bottom:2px}
+  .sheet-body{padding:10px 14px 8px}
+  .oxb{width:76px;height:60px;font-size:34px}
+  .hud{flex-direction:column;align-items:stretch}
+  .hud-group{justify-content:space-between}
+  .hud .chip{font-size:13px;padding:5px 8px}
+  .hud .btn{font-size:13px;padding:6px 9px}
+  .band span:last-child{display:none}
+}
+
+/* overlays */
+.overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(43,10,22,.55);padding-block:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.card{background:var(--burg-d);border:4px solid #2a0613;border-radius:18px;box-shadow:0 8px 0 #2a0613;color:var(--cream);width:min(580px,100%);max-height:100%;overflow:auto;padding:22px}
+.card .school{font-family:var(--f-paper);font-size:13px;letter-spacing:.12em;color:var(--gold);margin:0 0 4px}
+.card h1{font-family:var(--f-ui);font-weight:400;font-size:clamp(30px,6.4vw,44px);margin:0 0 4px;color:var(--cream);text-shadow:3px 3px 0 #2a0613;text-wrap:balance}
+.card .sub{font-family:var(--f-ui);color:#f0d9de;margin:0 0 14px}
+.rules{display:grid;gap:8px;margin:0 0 16px;padding:0;list-style:none}
+.rules li{background:var(--burg);border:2px solid #2a0613;border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.5}
+.rules li b{font-family:var(--f-ui);font-weight:400;color:var(--gold)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.field label{font-family:var(--f-ui);font-size:14px;color:#f0d9de}
+.field input{font-family:var(--f-ui);font-size:18px;padding:9px 12px;border:3px solid #2a0613;border-radius:10px;background:#fff;color:#111}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.big{font-size:20px;padding:10px 20px}
+
+/* result */
+.report{width:min(840px,100%);background:var(--paper);color:var(--ink);border:4px solid #2a0613;border-radius:14px;box-shadow:0 8px 0 #2a0613;max-height:100%;overflow:auto}
+.rep-band{background:var(--burg);color:var(--cream);padding:10px 22px;font-family:var(--f-paper);font-size:13px;letter-spacing:.08em}
+.rep-head{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:16px 22px 14px;border-bottom:2px solid var(--burg)}
+.rep-head h2{margin:0;font-family:var(--f-paper);font-weight:800;font-size:22px;color:var(--burg-d)}
+.rep-head p{margin:4px 0 0;font-family:var(--f-paper);font-size:13px;color:var(--ink-soft)}
+.stamp{width:108px;height:108px;border:6px solid var(--redpen);border-radius:50%;display:grid;place-items:center;color:var(--redpen);font-family:var(--f-paper);font-weight:800;font-size:40px;transform:rotate(-12deg);line-height:1;text-align:center}
+.stamp small{display:block;font-size:12px;font-weight:700;letter-spacing:.1em}
+.scores{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1.5px solid var(--paper-line)}
+.scores div{padding:12px 16px;border-right:1.5px solid var(--paper-line)}
+.scores div:last-child{border-right:0}
+.scores .k{font-family:var(--f-paper);font-size:12px;color:var(--ink-soft)}
+.scores .v{font-family:var(--f-paper);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums;color:var(--burg-d)}
+@media (max-width:560px){.scores{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.comment{margin:0;padding:14px 22px;font-family:var(--f-pen);font-size:26px;line-height:1.2;color:var(--redpen);border-bottom:1.5px solid var(--paper-line)}
+.rep-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 22px}
+.seg{display:flex;border:2px solid var(--burg);border-radius:8px;overflow:hidden}
+.seg button{font-family:var(--f-ui);font-size:14px;border:0;background:#fff;color:var(--burg-d);padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--burg);color:var(--cream)}
+.items{list-style:none;margin:0;padding:0 22px 22px;display:grid;gap:10px}
+.item{border:1.5px solid #dfcfbf;border-left-width:6px;border-radius:8px;padding:10px 14px;background:#fffdf8}
+.item.ok{border-left-color:var(--ok)}
+.item.no{border-left-color:var(--bad)}
+.item .top{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-paper);font-weight:800;font-size:14px}
+.item .tag{font-family:var(--f-ui);font-weight:400;font-size:13px;padding:1px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.item.ok .tag{background:var(--ok)}
+.item.no .tag{background:var(--bad)}
+.item .q{font-family:var(--f-paper);font-size:14.5px;line-height:1.65;margin:6px 0}
+.item .mine{font-size:13px;color:var(--ink-soft);margin:0 0 4px}
+.item .mine b{font-family:var(--f-pen);font-size:20px;color:var(--bluepen);font-weight:400}
+.item .exp{font-size:13.5px;line-height:1.6;margin:0;background:#f5ebe0;border-radius:6px;padding:8px 10px}
+.item .src{display:block;margin-top:4px;font-size:12px;color:var(--ink-soft)}
+mark.ans{background:#ffe27a;color:var(--ink);padding:0 2px;font-weight:700}
+
+#toast{position:absolute;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:12;font-family:var(--f-ui);font-size:16px;background:var(--redpen);color:#fff;border:3px solid #2a0613;border-radius:12px;padding:8px 14px;box-shadow:0 4px 0 #2a0613;max-width:90vw;text-align:center}
+#loading{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-ui);color:var(--cream);font-size:18px;z-index:1}
+@media (prefers-reduced-motion:reduce){#paper{transition:none}}
+</style>
+
+<div id="app">
+  <div id="loading">강의실 입장 중…</div>
+  <canvas id="scene" aria-label="충북대 로스쿨 강의실 3D 장면: 앞에서 원현호 교수님이 감독 중"></canvas>
+  <div id="bubble" hidden><span class="who">원현호 교수님</span><span id="bubbleText"></span></div>
+
+  <div class="hud" id="hud" hidden>
+    <div class="hud-group">
+      <div class="chip" id="timeChip">남은 시간 <b id="timeLeft">15:00</b></div>
+      <div class="chip">답안 <b id="answered">0/40</b></div>
+      <div class="chip">경고 <b id="warns">0/3</b></div>
+    </div>
+    <div class="hud-group">
+      <button class="btn light" id="lookBtn" type="button">고개 들기</button>
+      <button class="btn gold" id="peekBtn" type="button">옆자리 훔쳐보기</button>
+    </div>
+  </div>
+
+  <div id="paperWrap" hidden>
+    <section id="paper" aria-label="시험지">
+      <div class="band"><span>충북대학교 법학전문대학원</span><span>담당교수 원현호</span></div>
+      <header class="sheet-head">
+        <div>
+          <h2>2026학년도 2학기 공판절차론 중간고사</h2>
+          <small>Ⅰ. O/X 30문항(각 2점) · Ⅱ. 판례 빈칸 10문항(각 4점) · 시험시간 15분</small>
+        </div>
+        <div class="idbox"><span>성명</span><span id="nameOut">응시자</span></div>
+      </header>
+      <div class="sheet-body" id="qArea"></div>
+      <footer class="sheet-foot">
+        <div class="grid" id="grid"></div>
+        <div class="navrow">
+          <button class="pbtn" id="prevBtn" type="button">이전</button>
+          <span class="mid" id="pos">1 / 40</span>
+          <div style="display:flex;gap:6px">
+            <button class="pbtn" id="nextBtn" type="button">다음</button>
+            <button class="pbtn submit" id="submitBtn" type="button">답안 제출</button>
+          </div>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <div class="brand"><div class="logo"><img src="data:image/png;base64,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" alt="충북대학교 로고"></div><div><p class="school">충북대학교 법학전문대학원</p>
+      <h1>공판절차론 중간고사</h1></div></div>
+      <p class="sub">담당교수 원현호 · 제2강~제8강 · 매 응시마다 새로 출제</p>
+      <ul class="rules">
+        <li><b>Ⅰ부 O/X 30문항</b> · 각 2점. 강의별로 고르게, 강의안 형광펜·볼드 문구 위주로 나옵니다.</li>
+        <li><b>Ⅱ부 판례 빈칸 10문항</b> · 각 4점. 강의안 형광펜·볼드 판례 문구에서 나옵니다. 중요한 문구는 빈칸이 여러 개이고, 모든 빈칸을 맞혀야 4점이에요. 띄어쓰기·가운뎃점은 채점에서 무시합니다.</li>
+        <li><b>시간 15분</b> · 끝나면 답안지를 자동으로 걷어 갑니다.</li>
+        <li><b>옆자리 훔쳐보기</b> · 옆 사람 답안지 여백 메모가 보입니다. O/X는 판단 포인트와 근거 판례·조문, 빈칸은 초성과 첫 글자. 교수님이 이쪽을 보고 있으면 경고, 3회면 부정행위로 F.</li>
+      </ul>
+      <div class="field">
+        <label for="nameIn">성명 (답안지에 적힐 이름)</label>
+        <input id="nameIn" type="text" maxlength="12" placeholder="예: 김충북" autocomplete="off">
+      </div>
+      <div class="row"><button class="btn gold big" id="startBtn" type="button">시험 시작</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="confirm" hidden>
+    <div class="card">
+      <h1 style="font-size:28px">답안을 제출할까요?</h1>
+      <p class="sub" id="confirmMsg"></p>
+      <div class="row">
+        <button class="btn light" id="cancelSubmit" type="button">계속 풀기</button>
+        <button class="btn gold" id="doSubmit" type="button">제출하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="result" hidden>
+    <div class="report" role="dialog" aria-label="성적표">
+      <div class="rep-band">충북대학교 법학전문대학원 · 공판절차론 · 담당교수 원현호</div>
+      <div class="rep-head">
+        <div>
+          <h2>공판절차론 중간고사 성적표</h2>
+          <p id="repWho"></p>
+        </div>
+        <div class="stamp" id="stamp"></div>
+      </div>
+      <div class="scores">
+        <div><div class="k">총점</div><div class="v" id="sTotal"></div></div>
+        <div><div class="k">Ⅰ. O/X</div><div class="v" id="sOx"></div></div>
+        <div><div class="k">Ⅱ. 판례 빈칸</div><div class="v" id="sFb"></div></div>
+        <div><div class="k">훔쳐보기·경고</div><div class="v" id="sUse"></div></div>
+      </div>
+      <p class="comment" id="comment"></p>
+      <div class="rep-tools">
+        <div class="seg" role="group" aria-label="해설 보기">
+          <button type="button" id="fAll" aria-pressed="true">전체 해설</button>
+          <button type="button" id="fWrong" aria-pressed="false">틀린 문항만</button>
+        </div>
+        <button class="btn gold" id="retryBtn" type="button">새 문제로 재시험</button>
+      </div>
+      <ol class="items" id="items"></ol>
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ================= 문제은행 =================
+   O/X: 강의별 은행(제2강~제8강). 매 응시마다 은행별로 고르게 30문항을 무작위 추출.
+   판례 빈칸: 강의안 노란 형광펜 판례 문구 은행. 매 응시마다 10문항 무작위 추출(같은 판례는 1문항만).
+   h = 교수님 힌트(정답을 그대로 말하지 않고 판단 포인트를 짚어 줌) */
+const OX_BANKS = {
+"제2강 공소장변경":[
+ {q:"법원은 검사의 공소장변경 허가신청이 공소사실의 동일성을 해하지 아니하는 한 이를 의무적으로 허가하여야 한다.",a:true,e:"제298조 제1항. 공소사실의 동일성을 해하지 않는 한 법원은 허가하여야 합니다(99도375). 재량이 아닙니다.",s:"§298① · 99도375",h:"조문 문언이 '할 수 있다'인지 '하여야 한다'인지 떠올려 보세요."},
+ {q:"법원의 공소장변경 허가결정에 대하여는 독립하여 항고할 수 있다.",a:false,e:"허가결정은 판결 전의 소송절차에 관한 결정이므로 독립하여 항고할 수 없습니다(§403①). 위법이 판결에 영향을 미쳤다면 판결에 대한 상소로 다툽니다(87모17).",s:"§403① · 87모17",h:"'판결 전의 소송절차에 관한 결정'에 대한 불복 방법을 생각해 보세요(§403①)."},
+ {q:"법률심이자 사후심인 상고심에서도 공소장변경이 허용된다.",a:false,e:"상고심에서는 허용되지 않습니다. 항소심(사후심적 속심, 94도3297), 파기환송 후 항소심(2003도8153), 간이공판절차에서는 허용됩니다.",s:"재판절차별 공소장변경",h:"강의안의 O/X 표: 항소심(O), 파기환송 후 항소심(O), 상고심(?)"},
+ {q:"법원이 공소장변경허가신청서 부본을 피고인 또는 변호인에게 송달·교부하지 않은 채 공소장변경을 허가하고 유죄판결을 한 경우, 원칙적으로 '판결에 영향을 미친 법령위반'에 해당한다.",a:true,e:"원칙적으로 판결에 영향을 미친 법령위반입니다. 다만 방어권·변호권이 본질적으로 침해되지 않았다고 볼 특별한 사정이 있으면 그렇지 않습니다(2019도7217).",s:"2019도7217",h:"원칙과 예외 구조입니다. 예외는 '방어권·변호권의 본질적 침해가 없는 특별한 사정'."},
+ {q:"공소사실의 동일성이 인정되고 방어권 행사에 실질적 불이익이 없다면 법원은 공소장변경 없이 직권으로 다른 범죄사실을 인정할 수 있고, 이를 처벌하지 않는 것이 현저히 정의와 형평에 반하는 경우에는 직권으로 인정하여야 한다.",a:true,e:"직권심판의 '가능'과 '의무'를 구분한 판시입니다. 준강간 불능미수를 직권으로 인정했어야 한다고 보았습니다(2021도9043).",s:"2021도9043",h:"2021도9043은 직권심판 '의무'까지 인정한 사례였어요."},
+ {q:"친고죄로 기소된 후 피해자의 고소가 취소되었더라도, 공소사실의 동일성이 인정되는 비친고죄로 공소장을 변경할 수 있다.",a:true,e:"고소취소 후에도 동일성이 인정되는 다른 공소사실(비친고죄)로 공소장변경이 가능합니다(89도1317).",s:"89도1317",h:"공소장변경의 한계는 오직 '공소사실의 동일성'입니다."},
+ {q:"검사가 공소사실에 대한 의견을 기재한 의견서를 제출하였다면, 이는 곧바로 공소장변경허가신청서를 제출한 것으로 보아야 한다.",a:false,e:"의견서 제출만으로 곧바로 공소장변경허가신청서를 제출한 것으로 볼 수 없습니다(2021도13108).",s:"2021도13108",h:"공소장변경은 서면(신청서)에 의한 엄격한 절차라는 점."},
+ {q:"공소사실의 동일성이 인정되지 않는 등 공소장변경 허가결정에 위법사유가 있다면, 허가를 한 법원이 스스로 그 결정을 취소할 수 있다.",a:true,e:"허가결정에 위법사유가 있으면 허가한 법원이 스스로 취소할 수 있습니다(2001도116).",s:"2001도116",h:"독립 항고는 안 되지만, 법원 스스로 바로잡는 길은 있었어요."},
+ {q:"법원이 심리경과에 비추어 상당하다고 인정함에도 공소장변경을 요구하지 않았다면 그 자체로 위법하다.",a:false,e:"공소장변경 요구(§298②)를 할지는 법원의 재량이므로 요구하지 않았다고 위법한 것은 아닙니다(97도1516).",s:"§298② · 97도1516",h:"공소장변경 '요구'는 의무인가 재량인가(97도1516)."},
+ {q:"공소장변경으로 합의부사건이 단독사건으로 바뀌면 사건을 단독판사에게 재배당하여야 한다.",a:false,e:"단독사건이 합의부사건이 되면 합의부로 이송하지만(§8②), 합의부사건이 단독사건으로 바뀐 경우에는 단독판사에게 재배당할 수 없습니다(2013도1658).",s:"2013도1658",h:"이송 규정(§8②)은 '단독→합의'만 정합니다. 반대 방향은?"},
+ {q:"간접정범으로 기소된 사건에서 법원은 공소장변경 없이 방조범으로 심리·판단할 수 있다.",a:false,e:"간접정범으로 기소되었는데 공소장변경 없이 방조범 여부를 판단하는 것은 방어권 행사에 실질적 불이익을 초래할 염려가 있어 공소장변경이 필요합니다(2007도4663).",s:"2007도4663",h:"공동정범→방조는 축소사실 인정이 가능했지만, 간접정범→방조는 달랐어요."},
+ {q:"경합범으로 기소된 수개의 범죄사실을 상습범으로 변경한 정도라면, 법원이 공판절차를 정지하지 않았더라도 위법하지 않다.",a:true,e:"그 정도로는 방어권 행사에 불이익을 초래한다고 할 수 없어 공판절차 정지가 필요하지 않습니다(85도1193). 정지(§298④)는 임의적입니다.",s:"§298④ · 85도1193",h:"공소장변경 시 공판절차 정지(§298④)는 필요적인가 임의적인가?"}
+],
+"제3강 공판절차":[
+ {q:"법원은 공소장 부본을 제1회 공판기일 전 7일까지 피고인 또는 변호인에게 송달하여야 한다.",a:false,e:"제1회 공판기일 전 5일까지입니다(§266 단서). 7일은 피고인의 의견서 제출기간(§266의2①)입니다.",s:"§266 단서",h:"5일과 7일이 헷갈리는 지점. 7일은 피고인 '의견서' 제출기간이었어요."},
+ {q:"피고인에게 변호인이 있는 경우, 피고인은 검사가 보관하는 서류 등에 대하여 열람만을 신청할 수 있다.",a:true,e:"제266조의3 제1항 단서. 변호인이 있으면 피고인 본인은 열람만 신청할 수 있습니다.",s:"§266의3① 단서",h:"강의안 형광펜: '열람만'."},
+ {q:"공판준비기일에 신청하지 못한 증거는 원칙적으로 공판기일에 신청할 수 없는데(실권효), 이는 서면 제출에 의한 공판준비절차의 경우에도 마찬가지이다.",a:false,e:"실권효(§266의13①)는 공판준비'기일'에 관한 것이고, 서면 제출에 의한 공판준비절차에는 적용되지 않습니다.",s:"§266의13①",h:"각주에 '서면 제출에 의한 공판준비절차'는 따로 적혀 있었어요."},
+ {q:"재판장이 '징역 1년' 주문을 낭독한 뒤 피고인이 난동을 부리자 선고가 아직 끝나지 않았다며 징역 3년으로 변경 선고한 것은 적법하다.",a:false,e:"주문 낭독으로 선고 내용이 외부적으로 표시된 이상, 잘못 낭독하는 등 실수가 있거나 판결 내용에 잘못이 발견된 특별한 사정이 있어야 변경 선고가 허용됩니다. 이 사안은 위법입니다(2017도3884).",s:"2017도3884",h:"변경 선고가 허용되는 '특별한 사정'에 피고인의 법정 태도가 들어갈까요?"},
+ {q:"당사자의 증거신청에 대한 채택 여부는 법원의 재량으로서, 법원이 필요하지 않다고 인정할 때에는 조사하지 않을 수 있다.",a:true,e:"판례는 자유재량설입니다(95도826). 다만 채부결정도 증거조사도 없이 판결하는 것은 위법입니다(82도2614).",s:"95도826",h:"강의안 형광펜: '자유재량설'."},
+ {q:"필요적 변호사건에서 변호인 없이 개정하여 진행한 공판절차에서 이루어진 소송행위는 무효이다.",a:true,e:"필요적 변호사건은 변호인 없이 개정하지 못하고(§282, §283), 위법한 공판절차에서의 소송행위는 무효입니다(2005도5925).",s:"2005도5925",h:"필요적 변호사건의 개정 요건을 어긴 절차의 효력은?"},
+ {q:"공판준비기일에는 검사, 변호인뿐만 아니라 피고인도 반드시 출석하여야 한다.",a:false,e:"공판준비기일에는 검사와 변호인이 출석하여야 하고, 피고인의 출석은 재량입니다(§266의8①).",s:"§266의8①",h:"강의안 형광펜: '피고인은 재량'."},
+ {q:"법원은 사건을 공판준비절차에 부친 뒤 3개월이 지난 때에는 원칙적으로 공판준비절차를 종결하여야 한다.",a:true,e:"§266의12. 다만 공판의 준비를 계속하여야 할 상당한 이유가 있으면 종결하지 않을 수 있습니다.",s:"§266의12",h:"종결 사유 ①쟁점·증거 정리 완료 ②○개월 경과 ③당사자 불출석."},
+ {q:"법원의 증거결정에 대하여는 즉시항고할 수 있다.",a:false,e:"증거결정은 판결 전의 소송절차에 관한 결정이어서 항고할 수 없고, 상소이유로 삼을 수 있을 뿐입니다(90도646).",s:"90도646",h:"공소장변경 허가결정과 같은 성격의 결정입니다."},
+ {q:"법원이 적법하게 공판심리를 종결한 뒤 피고인이 증인신청을 하였다면, 법원은 반드시 공판심리를 재개하여 증인신문을 하여야 한다.",a:false,e:"반드시 재개해야 하는 것은 아닙니다(2013도12155). 변론재개 여부는 법원의 재량입니다.",s:"2013도12155",h:"변론재개는 법원의 의무? 재량?"},
+ {q:"검사가 열람·등사에 관한 법원의 결정을 지체 없이 이행하지 않으면, 해당 증인 및 서류 등에 대한 증거신청을 할 수 없다.",a:true,e:"§266의4⑤. 강의안 형광펜 부분입니다.",s:"§266의4⑤",h:"검사의 불이행에 대한 제재가 무엇이었는지 떠올려 보세요."},
+ {q:"피고인이 교도소에 수감되어 있는 경우 종전 주소지로 송달하거나 공시송달할 수 있다.",a:false,e:"구치소·교도소에 있는 피고인에게 종전 주소지 송달이나 공시송달을 해서는 안 됩니다(2013도2714).",s:"2013도2714",h:"수감 사실은 법원이 확인할 수 있는 사정입니다."},
+ {q:"판결 선고는 변론을 종결한 기일에 하는 것이 원칙이나, 특별한 사정이 있으면 변론종결 후 14일 이내에 따로 선고기일을 정할 수 있다.",a:true,e:"즉일선고의 원칙과 그 예외(§318의4①, ③)입니다.",s:"§318의4",h:"즉일선고 원칙의 예외 기간은 '14일'."}
+],
+"제4강 증인신문·간이공판·국민참여재판":[
+ {q:"공범인 공동피고인은 당해 소송절차에서는 다른 공동피고인에 대한 공소사실에 관하여 증인이 될 수 없으나, 소송절차가 분리되면 증인이 될 수 있다.",a:true,e:"절차가 분리되어 피고인의 지위에서 벗어나면 증인적격이 인정됩니다(2008도3300).",s:"2008도3300",h:"강의안 형광펜: '소송절차가 분리'."},
+ {q:"선서무능력자가 한 선서는 효력이 없으므로, 그 증언 자체의 효력도 인정되지 않는다.",a:false,e:"선서가 무효라 위증죄는 성립하지 않지만, 증언능력이 있는 한 증언의 효력은 인정됩니다(87도1268).",s:"§159 · 87도1268",h:"'선서의 효력'과 '증언의 효력'을 분리해서 보세요."},
+ {q:"반대신문권 보장을 위하여 변호인에 대한 가림시설 설치는 어떠한 경우에도 허용되지 않는다.",a:false,e:"가명 증인이 변호인 대면으로 심한 심리적 부담을 느끼는 등 특별한 사정이 있으면 예외적으로 허용됩니다(2014도18006).",s:"2014도18006",h:"강의안 형광펜: '예외적으로 허용됨'."},
+ {q:"간이공판절차에서는 전문증거에 대하여 제318조 제1항의 동의가 있는 것으로 간주되지만, 위법수집증거배제법칙·자백배제법칙과 자백의 보강법칙은 그대로 적용된다.",a:true,e:"증거동의 의제(§318의3)는 전문법칙에 관한 특칙일 뿐입니다.",s:"§318의3",h:"간이공판의 특칙은 '전문법칙'과 '증거조사 방식'에 한정됩니다."},
+ {q:"국민참여재판에서 배심원의 평결은 법원을 기속한다.",a:false,e:"평결은 법원을 기속하지 않고 권고적 효력만 있습니다(국참법 §46⑤).",s:"국참법 §46⑤",h:"강의안 형광펜: '법원을 기속하지 않고'."},
+ {q:"범죄피해자가 13세 미만인 경우, 법원은 부득이한 경우가 아닌 한 피해자와 신뢰관계에 있는 자를 동석하게 하여야 한다.",a:true,e:"13세 미만 등은 동석이 의무입니다(§163의2②). 일반 피해자는 '할 수 있다'(§163의2①).",s:"§163의2②",h:"강의안 형광펜: '13세 미만' → '동석하게 하여야 함'."},
+ {q:"공범 아닌 공동피고인이 선서 없이 한 법정진술은 다른 피고인에 대한 관계에서 증거능력이 없다.",a:true,e:"공범 아닌 공동피고인은 다른 피고인에 대해 증인의 지위에 있으므로 선서 없이 한 진술은 증거능력이 없습니다(82도898).",s:"82도898",h:"공범 아닌 공동피고인 = 증인의 지위 → 증인은 무엇을 해야 하죠?"},
+ {q:"절도범과 장물범이 함께 기소된 경우 이들은 공범이므로 서로에 대하여 증인적격이 없다.",a:false,e:"본범과 장물범은 공범이 아니어서 함께 기소되어도 상호 증인의 지위에 있습니다(2005도7601).",s:"2005도7601",h:"본범과 장물범, 범인은닉범 같은 '사후종범'은 공범 범위에 들어갈까요?"},
+ {q:"법원이 법정 외 증인신문의 일시와 장소를 피고인에게 미리 통지하지 않은 위법이 있더라도, 이후 증인신문 결과를 고지받은 피고인 측이 이의하지 않았다면 그 하자는 치유된다.",a:true,e:"책문권의 포기로 치유됩니다(73도2967). 다만 증인신문조서에 대한 증거조사 자체가 없었다면 증거능력이 없습니다(67도613).",s:"73도2967",h:"강의안 형광펜: '책문권의 포기로 치유됨'."},
+ {q:"간이공판절차 개시결정에 대하여는 항고할 수 있다.",a:false,e:"판결 전의 소송절차에 관한 결정이므로 항고할 수 없습니다(§403①). 요건 없이 간이공판으로 심판했다면 판결에 대한 상소로 다툽니다.",s:"§403①",h:"이번 시험에 §403①이 몇 번 나오는지 세어 보세요."},
+ {q:"사실관계는 인정하면서 범의만을 부인하는 경우도 간이공판절차의 요건인 '자백'에 해당한다.",a:false,e:"범의만 부인하거나 상습성을 다투는 경우는 자백이 아닙니다(2004도6176).",s:"2004도6176",h:"'공소사실에 대한 자백'은 구성요건 사실 전부를 인정하는 것."},
+ {q:"제1심에서 간이공판절차로 증거동의가 의제되어 증거능력이 인정된 증거는, 항소심에서 피고인이 범행을 부인하더라도 증거능력이 그대로 유지된다.",a:true,e:"항소심에서 부인하더라도 증거능력이 유지되고 증거조사를 다시 할 필요가 없습니다.",s:"간이공판절차의 특칙",h:"이미 적법하게 부여된 증거능력이 나중의 부인으로 사라질까요?"},
+ {q:"공소장 부본을 송달받은 날부터 7일 이내에 국민참여재판 의사확인서를 제출하지 않은 피고인도 제1회 공판기일이 열리기 전까지는 국민참여재판을 신청할 수 있다.",a:true,e:"2009모1032. 7일 기간이 지나면 신청할 수 없게 하려는 취지로 보기 어렵다고 보았습니다.",s:"2009모1032",h:"강의안 형광펜: '제1회 공판기일이 열리기 전까지'."},
+ {q:"재판장의 최초 설명(국참법 §42②)에는 원칙적으로 검사가 아직 낭독하지 않은 공소사실 등도 포함된다.",a:false,e:"최초 설명은 진술거부권 고지 전에 이루어지는 것으로, 원칙적으로 낭독 전 공소사실 등이 포함된다고 볼 수 없습니다(2014도8377).",s:"2014도8377",h:"강의안 형광펜: '공소사실 등이 포함된다고 볼 수 없음'."},
+ {q:"피고인이 증인신문 참여를 신청하였는데 변호인만 참여시키고 피고인 없이 증인신문을 실시하였다면 위법하다.",a:true,e:"피고인과 변호인 쌍방에 참여권이 보장되어야 합니다(68도1481). 그 증인신문조서는 증거능력이 없습니다.",s:"68도1481",h:"참여권은 피고인과 변호인 각자의 권리."}
+],
+"제5강 증거법 총론·자유심증":[
+ {q:"통설은 형법 제263조(상해죄의 동시범 특례)를 증명책임 전환규정으로 보아, 피고인이 인과관계의 부존재에 대한 증명책임을 부담한다고 본다.",a:true,e:"명문 규정에 의한 증명책임 전환의 대표 예입니다.",s:"증명책임의 전환",h:"강의안 형광펜: '예외적으로 피고인이 입증책임'."},
+ {q:"법관은 감정인의 감정의견에 구속되므로 감정결과에 반하는 사실을 인정할 수 없다.",a:false,e:"감정의견에 구속되지 않습니다(94도3163). 상충 감정 중 소수의견 채택도 가능합니다(75도2068).",s:"94도3163",h:"강의안 형광펜: '감정의견에 구속되지 않고'."},
+ {q:"성범죄 사건에서 '성인지적 관점'을 유지하여야 하므로, 피해자 진술의 증명력은 제한 없이 인정하여야 한다.",a:false,e:"성인지적 관점은 증명력을 제한 없이 인정하거나 무조건 유죄로 판단하라는 의미가 아닙니다(2023도13081).",s:"2023도13081",h:"강의안 형광펜: '…무조건 유죄로 판단해야 한다는 의미는 아님'."},
+ {q:"엄격한 증명과 자유로운 증명은 요구되는 심증의 정도에서도 차이가 있다.",a:false,e:"증거능력 유무와 증거조사 방식에 차이가 있을 뿐, 심증의 정도(합리적 의심 없는 증명)는 같습니다.",s:"엄격한 증명·자유로운 증명",h:"차이가 나는 건 '증거능력'과 '조사 방식'. 확신의 정도는?"},
+ {q:"피고인의 경력, 범죄 후의 정황, 양형자료로만 되는 정상전과 등은 자유로운 증명으로 족하다.",a:true,e:"양형은 법원의 재량이므로 자유로운 증명으로 족합니다(2010도750, 통설).",s:"2010도750",h:"양형 사실은 '범죄사실'인가요?"},
+ {q:"법관은 피고인의 자백이 있더라도 그와 다른 사실을 인정할 수 있다.",a:true,e:"자백과 다른 사실 인정도 가능합니다(2011도15653).",s:"2011도15653",h:"자백도 결국 증명력 판단의 대상입니다."},
+ {q:"진술조서의 기재 중 일부분만 믿고 다른 부분은 믿지 않는 것은 자유심증주의에 반한다.",a:false,e:"일부만 믿고 나머지는 배척해도 무방합니다(80도145).",s:"80도145",h:"자유심증주의 아래에서 '분할 판단'은 가능할까요?"},
+ {q:"살인죄처럼 법정형이 무거운 범죄는 간접증거만으로 유죄를 인정할 수 없다.",a:false,e:"간접증거만으로도 유죄 인정이 가능하나, 직접증거에 버금가는 압도적으로 우월한 증명이 필요합니다.",s:"간접증거의 증명력",h:"간접증거로 '불가'가 아니라 '더 높은 수준'이 요구될 뿐."},
+ {q:"관련 형사사건이나 민사사건의 확정판결에서 인정된 사실은 유력한 증거자료가 되지만, 법원이 그와 다른 사실을 인정할 수도 있다.",a:true,e:"특별한 사정이 없는 한 유력한 증거자료가 되나 구속되지는 않습니다(2014도1200, 95도192).",s:"2014도1200",h:"강의안 형광펜: '구속을 받는 것은 아님'."},
+ {q:"피고인이 수사과정에서 공소사실을 부인하였고 그 피의자신문조서에 증거동의를 하였다면, 그 중 일부만 발췌하여 유죄의 증거로 사용하는 데 아무런 제한이 없다.",a:false,e:"증거능력 자체가 부정되지는 않지만, 일부만 발췌하여 유죄의 증거로 쓰는 것은 함부로 허용할 수 없습니다(2023도13081).",s:"2023도13081",h:"강의안 형광펜: '일부만을 발췌'."},
+ {q:"호흡측정기에 의한 음주측정치와 혈액검사 측정치가 다르면, 특별한 사정이 없는 한 혈액검사 측정치가 측정 당시의 혈중알코올농도에 더 근접한다고 보아야 한다.",a:true,e:"과학적 증거방법에 관한 강의안 정리 내용입니다.",s:"과학적 증거",h:"더 직접적인 측정 방법은 어느 쪽일까요?"},
+ {q:"국민참여재판에서 배심원 만장일치 무죄 평결이 채택되어 무죄가 선고되었다면, 항소심은 새로운 증거조사로 명백히 반대되는 충분하고도 납득할 만한 현저한 사정이 없는 한 제1심 판단을 더욱 존중해야 한다.",a:true,e:"2009도14065. 제1심 판단은 한층 더 존중될 필요가 있습니다.",s:"2009도14065",h:"강의안 형광펜: '충분하고도 납득할 만한 현저한 사정'."}
+],
+"제6강 위법수집증거·자백·전문법칙":[
+ {q:"위법수집증거라도 피고인이나 변호인이 이를 증거로 함에 동의하면 증거능력이 인정된다.",a:false,e:"증거동의가 있어도 증거능력이 없습니다(2009도11401).",s:"2009도11401",h:"강의안 형광펜: '동의하였다고 하더라도 증거능력 없음'."},
+ {q:"피고인 자백의 임의성에 다툼이 있을 때에는 검사가 그 의문점을 없애는 증명을 하여야 하고, 임의성 유무는 자유로운 증명으로 판단할 수 있다.",a:true,e:"증명책임은 검사(2007도7760), 증명 방법은 자유로운 증명(83도1718)입니다.",s:"2007도7760 · 83도1718",h:"강의안 형광펜: '검사' / '자유로운 증명'."},
+ {q:"진술거부권 불고지 상태의 자백을 기초로 수집한 증거라도, 약 40일 후 변호인의 충분한 조력을 받으며 공개 법정에서 임의로 한 제1심 법정 자백은 예외적으로 유죄 증거로 쓸 수 있다.",a:true,e:"인과관계가 희석·단절된 2차적 증거로 본 사례입니다(2008도11437). 최초 자백 피신조서와 압수물은 증거능력 부정.",s:"2008도11437",h:"강의안 형광펜: '약 40일', '변호인의 충분한 조력'."},
+ {q:"음란물 유포 혐의 영장으로 수색하던 중 대마를 발견하여 현행범 체포와 함께 압수했다면, 사후 압수·수색영장을 받지 않았더라도 압수물과 압수조서는 증거능력이 있다.",a:false,e:"사후영장을 받지 않았으므로 압수물과 압수조서 모두 증거능력이 없습니다(2008도10914).",s:"2008도10914",h:"강의안 형광펜: '사후 압수·수색영장을 받지 않은 경우'."},
+ {q:"미리 진술거부권을 고지하지 않은 채 작성된 피의자신문조서는 증거능력이 없다.",a:true,e:"위법수집증거로서 증거능력이 없습니다(2011도8125). 자백배제법칙과는 별개로 파악합니다.",s:"2011도8125",h:"진술거부권 불고지 → 임의성과 '별개로' 위법수집증거."},
+ {q:"사인이 위법하게 수집한 증거는 그 이유만으로 모두 증거능력이 부정된다.",a:false,e:"판례는 이익형량설입니다. 진실발견이라는 공익과 개인의 인격적 이익을 비교형량하여 결정합니다.",s:"사인의 위법수집증거",h:"강의안 형광펜: '이익형량', '비교형량'."},
+ {q:"직접 고문을 당하지 않았더라도 다른 피의자들이 고문당하는 소리를 듣고 한 자백은 임의성이 없는 자백에 해당할 수 있다.",a:true,e:"77도463.",s:"77도463",h:"임의성 상실 사유는 '예시적'입니다(82도2413)."},
+ {q:"수사기관이 상대방의 착오나 논리모순을 이용하여 자백을 받았다면 그것만으로 기망에 의한 자백이 된다.",a:false,e:"신문방법이 정당하지 않다고 비난할 수 있을 정도의 '적극적' 기망이 필요하고, 착오·논리모순 이용만으로는 부족합니다.",s:"기망에 의한 자백",h:"'적극적 기망행위'가 요구된다는 점."},
+ {q:"임의성 없는 자백은 유죄의 증거로는 쓸 수 없지만 탄핵증거로는 사용할 수 있다.",a:false,e:"탄핵증거로도 사용할 수 없습니다(2005도2617). 피고인이 동의해도 증거능력이 없습니다(2004도7900).",s:"2005도2617",h:"임의성 없는 자백은 '어떤 용도로도' 쓸 수 있을까요?"},
+ {q:"선서능력 있는 증인이 선서 없이 한 진술은 증거능력이 없다.",a:true,e:"78도1031.",s:"78도1031",h:"선서'무'능력자와 비교해 보세요."},
+ {q:"증인의 신용성을 탄핵하기 위한 탄핵증거로 제출하는 경우에도 전문법칙이 적용된다.",a:false,e:"탄핵증거(§318의2)에는 전문법칙이 적용되지 않습니다.",s:"§318의2",h:"탄핵증거는 범죄사실을 증명하는 증거인가요?"},
+ {q:"부정수표단속법위반 사건에서 증거로 제출된 수표 자체는 전문증거에 해당한다.",a:false,e:"수표는 증거물(비진술증거)이므로 전문증거가 아닙니다(2015도2275).",s:"2015도2275",h:"전문법칙은 '진술증거'에만 적용됩니다."},
+ {q:"피고인의 공판조서 열람·등사 청구에 법원이 불응하여 그 권리가 침해되었다면, 그 공판조서뿐 아니라 거기에 기재된 피고인이나 증인의 진술도 유죄의 증거로 할 수 없다.",a:true,e:"2011도15869.",s:"2011도15869",h:"열람·등사권 침해의 효과가 '진술'에까지 미치는지."}
+],
+"제7강 조서·진술서·제314조":[
+ {q:"피고인이 제1심 이래 공소사실을 계속 부인하는데 증거목록에는 사경 작성 피의자신문조서의 내용을 인정한 것으로 기재되어 있다면, 이는 착오기재로서 그 조서는 증거능력이 없다.",a:true,e:"법정 부인은 자백 내용 사경 피신조서의 내용 부인입니다(97도2211). 증거목록 기재는 착오기재(2005도6271).",s:"97도2211 · 2005도6271",h:"강의안 형광펜: '착오기재'."},
+ {q:"수사기관이 진술자의 성명을 가명으로 기재하여 진술조서를 작성하였다면, 그 이유만으로 '적법한 절차와 방식'에 따라 작성되지 않은 것이 된다.",a:false,e:"가명 기재만으로 위반이 되지는 않습니다(2011도7757).",s:"2011도7757",h:"강의안 형광펜: '가명'."},
+ {q:"증인이 정당하게 증언거부권을 행사한 것이 아니라면, 특별한 사정이 없더라도 그 증언거부는 제314조의 '그 밖에 이에 준하는 사유'에 해당한다.",a:false,e:"정당한 증언거부권 행사가 아니어도, 피고인이 증언거부 상황을 초래했다는 등 특별한 사정이 없는 한 해당하지 않습니다(2018도13945 전합).",s:"2018도13945 전합",h:"강의안 형광펜: '정당하게 증언거부권을 행사한 것이 아니라도 … 해당하지 않음'."},
+ {q:"증인으로 소환받았으나 출산을 앞두고 있다는 사유로 출석하지 않은 경우는 제314조의 진술불능 사유에 해당하지 않는다.",a:true,e:"진술불능 부정 사례입니다(99도915).",s:"99도915",h:"강의안 형광펜: '출산을 앞두고 있다'."},
+ {q:"대검찰청 진술분석관이 녹화한 피해자 면담 영상녹화물은 수사기관이 아닌 자가 작성한 것이므로 제313조 제1항에 따라 증거능력이 인정될 수 있다.",a:false,e:"수사과정 외에서 작성된 것으로 볼 수 없어 제313조①도, 제312조도 적용되지 않아 증거능력이 없습니다(2023도15133).",s:"2023도15133",h:"제313조①의 서류는 '수사과정 ○'에서 작성된 서류."},
+ {q:"수사기관이 피의자의 진술을 기재한 서류라면 진술조서의 형식을 갖추었더라도 피의자신문조서로 보아야 한다.",a:true,e:"92도442.",s:"92도442",h:"형식보다 '실질'입니다."},
+ {q:"서명·날인이 없는 진술조서는 증거능력이 없다.",a:true,e:"92도2908. 피해자 동생이 대신 서명·날인한 경우도 증거능력이 없습니다(96도2865).",s:"92도2908",h:"'적법한 절차와 방식' = 형식적 진정성립 + 절차 준수."},
+ {q:"실황조사서의 기재가 사법경찰관의 의견을 기재한 것에 불과하더라도, 작성자가 성립의 진정을 인정하면 증거능력이 있다.",a:false,e:"의견 기재에 불과하면 증거능력이 없습니다(83도948).",s:"83도948",h:"실황조사서도 '검증의 결과'를 기재해야 의미가 있습니다."},
+ {q:"단순히 증인소환장이 주소불명으로 송달불능된 것만으로 제314조의 '소재불명'에 해당한다.",a:false,e:"소재탐지촉탁까지 하여 소재수사를 했는데도 확인되지 않아야 합니다.",s:"제314조 소재불명",h:"강의안 형광펜(2003도7185 사안): '소재탐지조차 불능'."},
+ {q:"공범관계에 있는 다른 피의자에 대한 사경 작성 피의자신문조서는, 그 공범의 소재불명으로 법정 진술이 불가능하다면 제314조에 따라 증거능력이 인정될 수 있다.",a:false,e:"피고인이 내용을 부인하면 증거능력이 부정되므로 제314조가 적용되지 않습니다(2003도7185 전합).",s:"2003도7185 전합",h:"강의안 형광펜: '제314조가 적용되지 아니한다'."},
+ {q:"원진술자가 법정에서 단지 '수사기관에서 사실대로 진술하고 서명·무인한 사실이 있다'고 진술한 것만으로는 진술조서의 실질적 진정성립이 인정되지 않는다.",a:true,e:"조서의 기재내용과 진술내용이 일치함을 인정해야 합니다.",s:"실질적 진정성립",h:"'서명했다'는 것과 '기재 내용이 내 말과 같다'는 것은 다릅니다."},
+ {q:"특신상태는 증거능력의 요건이므로 검사가 증명책임을 지며, 소송법적 사실이어서 자유로운 증명으로 족하다.",a:true,e:"2012도2937.",s:"2012도2937",h:"증명책임은 누구? 증명 방법은 엄격/자유?"},
+ {q:"검찰 형사조정조서 중 '피의자의 주장'란에 피고인의 범죄사실 인정 취지 진술을 기재한 부분은 제313조 제1항에 따라 증거능력이 인정된다.",a:false,e:"수사기관의 관여나 영향 아래 작성되어 '수사과정 외' 서류로 볼 수 없으므로 증거능력이 없습니다.",s:"형사조정조서",h:"진술분석관 영상녹화물과 같은 논리입니다."},
+ {q:"수사기관이 작성한 압수조서에 기재된 피고인의 자백 진술 부분은 피고인이 그 내용을 부인하면 증거능력이 없다.",a:true,e:"제312조 제3항이 적용됩니다.",s:"압수조서",h:"자백 진술이 '어디에' 적혔든 사경 작성 서류의 피의자 진술입니다."}
+],
+"제8강 제315조·제316조·재전문·임의성":[
+ {q:"다른 피고사건의 공판조서나 증인신문조서는 제315조 제3호의 '기타 특히 신용할 만한 정황에 의하여 작성된 문서'로서 당연히 증거능력이 인정된다.",a:true,e:"기타 특신문서 인정례입니다(66도617, 2004도4428).",s:"§315 3호",h:"강의안 형광펜: '다른 피고사건의 공판조서, 증인신문조서'."},
+ {q:"제316조 제1항의 '피고인'은 당해 피고인만을 의미하므로, 공범이나 공동피고인의 진술을 내용으로 하는 전문진술에는 제316조 제2항이 적용된다.",a:true,e:"84도2279.",s:"84도2279",h:"강의안 형광펜: '당해 피고인만'."},
+ {q:"공소장은 제315조 제1호의 공권적 증명문서로서 당연히 증거능력이 인정된다.",a:false,e:"수사기관이 작성한 문서는 해당하지 않습니다. 공소장 X(78도575).",s:"78도575",h:"공무원이 작성했다고 다 제315조 1호가 아닙니다."},
+ {q:"외국 수사기관의 수사결과는 제315조에 의하여 당연히 증거능력이 인정된다.",a:false,e:"79도1852. 수사기관 작성 문서는 제315조 문서가 아닙니다.",s:"79도1852",h:"'수사기관'이 작성한 문서인지가 핵심."},
+ {q:"군의관이 작성한 진단서는 제315조 제1호에 의하여 당연히 증거능력이 있다.",a:true,e:"72도922.",s:"72도922",h:"군의관은 공무원입니다."},
+ {q:"재전문서류는 제312조~제314조의 요건과 제316조의 요건을 모두 갖춘 때에 예외적으로 증거능력이 인정된다.",a:true,e:"2000도159, 2010도5948.",s:"2000도159",h:"서류로서의 요건 + 전문진술로서의 요건."},
+ {q:"재전문진술이나 재전문진술을 기재한 조서는 피고인이 증거로 하는 데 동의하지 않는 한 증거능력이 없다.",a:true,e:"2000도159.",s:"2000도159",h:"강의안 형광펜: '증거 동의' → '증거능력이 인정될 수 없음'."},
+ {q:"원진술자가 제1심 법정에 출석해 진술하였다가 항소심에서 진술할 수 없게 되었다면, 제316조 제2항의 '원진술자가 진술할 수 없는 때'에 해당한다.",a:false,e:"해당하지 않으므로 그 전문진술은 증거능력이 없습니다.",s:"제316조②",h:"이미 법정에서 한 번 진술했던 사람입니다."},
+ {q:"원진술자인 공동피고인이 법정에서 공소사실을 부인하고 있다면, 그 공동피고인의 진술을 들은 자의 전문진술은 '원진술자가 진술할 수 없는 때'에 해당하여 증거능력이 있다.",a:false,e:"공동피고인이 이미 출정해 있으므로 진술불능에 해당하지 않습니다.",s:"제316조②",h:"부인하는 것과 진술할 수 없는 것은 다릅니다."},
+ {q:"기록상 진술증거의 임의성을 의심할 만한 사정이 있으면 법원은 직권으로 조사하여야 하고, 임의성이 인정되지 않는 진술은 피고인이 동의하더라도 증거로 삼을 수 없다.",a:true,e:"2004도7900.",s:"2004도7900",h:"강의안 형광펜: '직권으로 그 임의성 여부에 관하여 조사' / '동의하더라도'."},
+ {q:"조사자증언의 특신상태는 그러한 개연성이 있다는 정도로 증명되면 충분하다.",a:false,e:"합리적인 의심의 여지를 배제할 정도에 이르러야 합니다(2023도7301).",s:"2023도7301",h:"강의안 형광펜: '합리적인 의심의 여지를 배제할 정도'."},
+ {q:"제316조 제1항의 '피고인의 진술'은 피고인의 지위에서 행하여진 것에 한하지 않으므로, 범행 직후 피고인의 자백을 들은 사람이 그 내용을 증언하는 경우에도 적용된다.",a:true,e:"피의자·참고인 등 지위에서 한 진술도 포함됩니다.",s:"제316조①",h:"'피고인의 진술' = 지금 피고인인 사람이 언제 했든 한 말."}
+]
+};
+
+const FB_BANK = [
+ {k:"2007도3061",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",pre:"절차 조항에 따르지 않는 수사기관의 압수수색을 억제하고 재발을 방지하는 가장 효과적이고 확실한 대응책은 이를 통하여 수집한 증거는 물론 이를 기초로 하여 획득한 ",ans:"2차적 증거",ok:["2차적증거","이차적증거","2차증거"],post:"를 유죄 인정의 증거로 삼을 수 없도록 하는 것이다.",e:"위법수집증거배제법칙과 독수독과 원칙을 선언한 리딩 케이스.",lec:"제6강"},
+ {k:"2007도3061",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",pre:"수사기관의 절차 위반행위가 ",ans:"적법절차의 실질적인 내용",ok:["적법절차의실질적인내용","적법절차의실질적내용"],post:"을 침해하는 경우에 해당하지 아니하고, 오히려 그 증거의 증거능력을 배제하는 것이 … 형사 사법 정의를 실현하려 한 취지에 반하는 결과를 초래하는 예외적인 경우라면, 법원은 그 증거를 유죄 인정의 증거로 사용할 수 있다.",e:"원칙적 배제·예외적 허용의 기준. 예외 사유는 검사가 입증(2008도763).",lec:"제6강"},
+ {k:"2007도3061",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",pre:"오히려 그 증거의 증거능력을 배제하는 것이 헌법과 형사소송법이 형사소송에 관한 절차 조항을 마련하여 적법절차의 원칙과 ",ans:"실체적 진실 규명",ok:["실체적진실규명"],post:"의 조화를 도모하고 이를 통하여 형사 사법 정의를 실현하려 한 취지에 반하는 결과를 초래하는 …",e:"예외적 허용의 두 번째 요건 문장입니다.",lec:"제6강"},
+ {k:"2007도3061b",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",pre:"절차에 따르지 아니한 증거 수집과 2차적 증거 수집 사이의 ",ans:"인과관계 희석 또는 단절",ok:["인과관계희석또는단절","인과관계의희석또는단절","인과관계희석단절"],post:" 여부를 중심으로 2차적 증거 수집과 관련된 모든 사정을 전체적·종합적으로 고려하여 예외적인 경우에는 유죄 인정의 증거로 사용할 수 있다.",e:"2차적 증거의 예외적 허용 기준입니다(2008도11437 등에서 적용).",lec:"제6강"},
+ {k:"2008도763",c:"대법원 2009. 3. 12. 선고 2008도763 판결",pre:"이 사건 압수·수색영장에서 압수할 물건을 '압수장소에 보관중인 물건'이라고 기재하고 있는 것을 '압수장소에 ",ans:"현존하는 물건",ok:["현존하는물건","현존물건"],post:"'으로 해석할 수 없다고 한 원심의 판단은 옳다.",e:"영장 문언은 엄격하게 해석해야 하고 피압수자에게 불리하게 확장·유추해석할 수 없습니다.",lec:"제6강"},
+ {k:"98도1438",c:"대법원 1999. 5. 14. 선고 98도1438 판결",pre:"공소사실의 동일성은 그 사실의 기초가 되는 사회적 사실관계가 기본적인 점에서 동일하면 그대로 유지되는 것이나, … 피고인의 행위와 그 사회적인 사실관계를 기본으로 하되 ",ans:"규범적 요소",ok:["규범적요소","규범적인요소"],post:"도 아울러 고려하여야 한다.",e:"기본적 사실관계 동일설에 규범적 요소를 가미한 판례 입장.",lec:"제2강"},
+ {k:"93도2080",c:"대법원 1994. 3. 22. 선고 93도2080 전원합의체 판결",pre:"피고인의 행위와 그 사회적인 사실관계를 기본으로 하되 그 규범적 요소도 고려에 넣어 판단하여야 할 것이고, 피고인에 대한 ",ans:"법적 안정성",ok:["법적안정성"],post:"의 보호와 국가의 적정한 형벌권행사가 조화가 이루어질 수 있도록 하여야 할 것이다.",e:"장물취득죄 확정판결의 기판력이 강도상해죄에 미치지 않는다고 본 사건.",lec:"제2강"},
+ {k:"2021도9043",c:"대법원 2024. 4. 12. 선고 2021도9043 판결",pre:"공소장이 변경되지 않았다는 이유로 이를 처벌하지 않는다면 적정절차에 의한 신속한 실체적 진실의 발견이라는 형사소송의 목적에 비추어 ",ans:"현저히 정의와 형평",ok:["현저히정의와형평","정의와형평"],post:"에 반하는 것으로 인정되는 경우라면 법원으로서는 직권으로 그 범죄사실을 인정하여야 한다.",e:"직권심판 '의무'가 인정되는 요건.",lec:"제2강"},
+ {k:"2021도9043",c:"대법원 2024. 4. 12. 선고 2021도9043 판결",pre:"따라서 원심으로서는 준강간의 ",ans:"불능미수",ok:["불능미수"],post:" 범죄사실을 직권으로 인정하였어야 한다.",e:"준강간 장애미수로 기소된 사안. 원심판결이 확정되면 기판력 때문에 다시 기소할 수도 없다는 점도 지적했습니다.",lec:"제2강"},
+ {k:"2009도6788",c:"대법원 2012. 5. 17. 선고 2009도6788 전원합의체 판결",pre:"법정에 출석한 증인이 형사소송법 제148조, 제149조 등에서 정한 바에 따라 정당하게 ",ans:"증언거부권",ok:["증언거부권"],post:"을 행사하여 증언을 거부한 경우는 형사소송법 제314조의 '그 밖에 이에 준하는 사유로 인하여 진술할 수 없는 때'에 해당하지 아니한다.",e:"제314조 예외사유의 엄격한 제한.",lec:"제7강"},
+ {k:"2018도13945",c:"대법원 2019. 11. 21. 선고 2018도13945 전원합의체 판결",pre:"현행 형사소송법은 그 예외사유의 범위를 더욱 엄격하게 제한하고 있는데, 이는 ",ans:"직접심리주의",ok:["직접심리주의"],post:"와 공판중심주의의 요소를 강화하려는 취지가 반영된 것이다.",e:"제314조 개정 연혁(사망·질병 → +외국거주 → +소재불명·그 밖에 이에 준하는 사유)의 의미.",lec:"제7강"},
+ {k:"2015도2625",c:"대법원 2015. 7. 16. 선고 2015도2625 전원합의체 판결",pre:"형사소송법 제315조 제3호의 '기타 특히 신용할 만한 정황에 의하여 작성된 문서'는 … 공권적 증명문서 및 업무상 통상문서에 준하여 '굳이 ",ans:"반대신문",ok:["반대신문","반대신문권"],post:"의 기회 부여 여부가 문제 되지 않을 정도로 고도의 신용성의 정황적 보장이 있는 문서'를 의미한다.",e:"국정원 심리전단 사건. '425지논'·'시큐리티' 파일은 제315조 문서가 아니라고 봄.",lec:"제8강"},
+ {k:"2015도2625",c:"대법원 2015. 7. 16. 선고 2015도2625 전원합의체 판결",pre:"이러한 문서는 업무의 ",ans:"기계적 반복성",ok:["기계적반복성"],post:"으로 인하여 허위가 개입될 여지가 적고, 또 문서의 성질에 비추어 고도의 신용성이 인정되어 반대신문의 필요가 없거나 작성자를 소환해도 서면제출 이상의 의미가 없는 것들에 해당한다.",e:"제315조 제2호 업무상 통상문서의 입법취지.",lec:"제8강"},
+ {k:"2018도14303",c:"대법원 2019. 8. 29. 선고 2018도14303 전원합의체 판결",pre:"원진술의 내용인 사실이 요증사실인 경우에는 전문증거이지만, 원진술의 ",ans:"존재 자체",ok:["존재자체","존재"],post:"가 요증사실인 경우에는 본래증거이지 전문증거가 아니다.",e:"업무수첩 '지시 사항 부분'은 본래증거가 될 수 있다고 봄.",lec:"제8강"},
+ {k:"2018도14303",c:"대법원 2019. 8. 29. 선고 2018도14303 전원합의체 판결",pre:"공소외 1의 업무수첩 등의 대화 내용 부분이 피고인과 개별 면담자 사이에서 대화한 내용을 증명하기 위한 진술증거인 경우에는 ",ans:"전문진술",ok:["전문진술"],post:"로서 형사소송법 제316조 제1항에 따라 그 진술이 특히 신빙할 수 있는 상태에서 한 것임이 증명된 때에 한하여 증거로 사용할 수 있다.",e:"대화 내용 부분은 간접사실의 증거로 쓰는 것도 허용되지 않음.",lec:"제8강"},
+ {k:"2023도7301",c:"대법원 2023. 10. 26. 선고 2023도7301 판결",pre:"'그 진술이 특히 신빙할 수 있는 상태하에서 행하여졌음'이란 그 진술을 하였다는 것에 ",ans:"허위 개입의 여지",ok:["허위개입의여지","허위개입여지"],post:"가 거의 없고, 그 진술내용의 신빙성이나 임의성을 담보할 구체적이고 외부적인 정황이 있음을 의미한다.",e:"조사자증언의 특신상태 정의.",lec:"제8강"},
+ {k:"2023도7301",c:"대법원 2023. 10. 26. 선고 2023도7301 판결",pre:"피고인의 수사기관 진술이 '특히 신빙할 수 있는 상태하에서 행하여졌음에 대한 증명'은 단지 그러할 개연성이 있다는 정도로는 부족하고 ",ans:"합리적인 의심",ok:["합리적인의심","합리적의심"],post:"의 여지를 배제할 정도에 이르러야 한다.",e:"변호인 동석이 없었고 범인만 알 수 있는 내용도 없어 특신상태가 부정됨.",lec:"제8강"},
+ {k:"2023도13081",c:"대법원 2024. 1. 4. 선고 2023도13081 판결",pre:"성범죄 사건을 심리할 때에는 사건이 발생한 맥락에서 성차별 문제를 이해하고 양성평등을 실현할 수 있도록 '",ans:"성인지적 관점",ok:["성인지적관점","성인지관점"],post:"'을 유지하여야 하므로, … 피해자 진술의 증명력을 가볍게 배척하는 것은 논리와 경험의 법칙에 따른 증거판단이라고 볼 수 없다.",e:"다만 증명력을 제한 없이 인정하라는 뜻은 아님.",lec:"제5강"},
+ {k:"2023도13081",c:"대법원 2024. 1. 4. 선고 2023도13081 판결",pre:"설령 피고인의 주장이나 변명이 모순되거나 석연치 않은 면이 있는 등 유죄의 의심이 가는 사정이 있다고 하더라도 ",ans:"피고인의 이익",ok:["피고인의이익"],post:"으로 판단하여야 한다.",e:"무죄추정 원칙과 '의심스러우면 피고인의 이익으로'.",lec:"제5강"},
+ {k:"2016도17054",c:"대법원 2022. 3. 17. 선고 2016도17054 판결",pre:"반대신문권의 보장은 피고인에게 불리한 주된 증거의 증명력을 탄핵할 수 있는 기회가 보장되어야 한다는 점에서 형식적·절차적인 것이 아니라 ",ans:"실질적·효과적",ok:["실질적효과적","실질적이고효과적"],post:"인 것이어야 한다.",e:"2018도13945 전합도 같은 문장을 씁니다.",lec:"제4강"},
+ {k:"2016도17054",c:"대법원 2022. 3. 17. 선고 2016도17054 판결",pre:"이와 같이 실질적 ",ans:"반대신문권",ok:["반대신문권"],post:"의 기회가 부여되지 아니한 채 이루어진 증인의 법정진술은 위법한 증거로서 증거능력을 인정하기 어렵다.",e:"증인이 반대신문에 답하지 않아 탄핵이 곤란했던 사안.",lec:"제4강"},
+ {k:"2009도9344",c:"대법원 2010. 1. 14. 선고 2009도9344 판결",pre:"제4회 공판기일에서 재판장이 증인신문 결과 등을 공판조서에 의하여 고지하였는데 피고인은 '",ans:"변경할 점과 이의할 점",ok:["변경할점과이의할점"],post:"이 없다'고 진술한 사실을 알 수 있는바, 이와 같이 피고인이 책문권 포기 의사를 명시함으로써 실질적인 반대신문의 기회를 부여받지 못한 하자가 치유되었다.",e:"반대신문권 침해 하자도 책문권 포기로 치유될 수 있음.",lec:"제4강"},
+ {k:"2009모1032",c:"대법원 2009. 10. 23.자 2009모1032 결정",pre:"공소장 부본을 송달받은 날부터 7일 이내에 의사확인서를 제출하지 아니한 피고인도 ",ans:"제1회 공판기일",ok:["제1회공판기일","1회공판기일","첫공판기일"],post:"이 열리기 전까지는 국민참여재판 신청을 할 수 있고 법원은 그 의사를 확인하여 국민참여재판으로 진행할 수 있다.",e:"별도의 국민참여재판 개시결정은 필요 없음.",lec:"제4강"},
+ {k:"2017도3884",c:"대법원 2022. 5. 13. 선고 2017도3884 판결",pre:"재판장이 일단 주문을 낭독하여 선고 내용이 외부적으로 표시된 이상 재판서에 기재된 주문과 이유를 잘못 낭독하거나 설명하는 등 실수가 있거나 판결 내용에 잘못이 있음이 발견된 경우와 같이 ",ans:"특별한 사정",ok:["특별한사정"],post:"이 있는 경우에 변경 선고가 허용된다.",e:"징역 1년 → 3년 변경 선고는 위법.",lec:"제3강"},
+ {k:"2000도2933",c:"대법원 2001. 5. 29. 선고 2000도2933 판결",pre:"위 수사보고서 중 기재 부분은 … 실황조사서에 해당하지 아니하며, 단지 수사의 경위 및 결과를 ",ans:"내부적으로 보고",ok:["내부적으로보고","내부보고"],post:"하기 위하여 작성된 서류에 불과하므로 그 안에 검증의 결과에 해당하는 기재가 있다고 하여 이를 '검증의 결과를 기재한 조서'라고 할 수 없다.",e:"제313조, 제311조·315조·316조 어디에도 해당하지 않아 증거능력 없음.",lec:"제7강"},
+ {k:"2019도13290",c:"대법원 2019. 11. 14. 선고 2019도13290 판결",pre:"이 사건 휴대전화기에 대한 압수조서 중 '압수경위'란에 기재된 내용은, 범행 현장을 직접 목격한 사람의 진술이 담긴 것으로서 형사소송법 제312조 제5항에서 정한 '피고인이 아닌 자가 ",ans:"수사과정에서 작성한 진술서",ok:["수사과정에서작성한진술서"],post:"'에 준하는 것으로 볼 수 있다.",e:"임의제출 절차의 적법성과 무관한 별개의 독립적 증거로 봄.",lec:"제7강"},
+ {k:"2023도15133",c:"대법원 2024. 3. 28. 선고 2023도15133 판결",pre:"수사과정에서 작성된 서류의 증거능력에 관하여 제313조 제1항보다 더욱 엄격한 요건을 규정한 제312조의 취지에 비추어 보면, 형사소송법 제313조 제1항이 규정하는 서류는 ",ans:"수사과정 외",ok:["수사과정외"],post:"에서 작성된 서류를 의미한다.",e:"진술분석관 영상녹화물에 제313조①을 적용할 수 없다고 본 근거.",lec:"제7강"},
+ {k:"2003도7185",c:"대법원 2004. 7. 15. 선고 2003도7185 전원합의체 판결",pre:"당해 피고인과 공범관계가 있는 다른 피의자에 대한 검사 이외의 수사기관 작성의 피의자신문조서는 그 피의자의 법정진술에 의하여 그 성립의 진정이 인정되더라도 당해 피고인이 공판기일에서 그 조서의 내용을 ",ans:"부인",ok:["부인","부인하면"],post:"하면 증거능력이 부정되므로, 그 당연한 결과로 형사소송법 제314조가 적용되지 아니한다.",e:"공범에 대한 사경 피신조서에는 제314조 적용 X.",lec:"제7강"},
+ {k:"2015도17115",c:"대법원 2016. 2. 18. 선고 2015도17115 판결",pre:"그 밖에 그를 공판정에 출석시켜 진술하게 할 모든 수단을 강구하는 등 ",ans:"가능하고 상당한 수단",ok:["가능하고상당한수단"],post:"을 다하더라도 그 진술을 요할 자를 법정에 출석하게 할 수 없는 사정이 있어야 예외적으로 그 적용이 있다.",e:"외국거주라도 사법공조 절차를 시도하지 않았다면 제314조 적용 X.",lec:"제7강"}
+];
+
+/* ===== 문제은행 확장: 형광펜·볼드(밑줄) 문구 기반 문항 ===== */
+const HL_MAP={
+ "제2강 공소장변경":[0,2,3,4,8,10],
+ "제3강 공판절차":[0,1,2,3,4,6,10],
+ "제4강 증인신문·간이공판·국민참여재판":[0,1,2,3,4,5,6,8,12,13],
+ "제5강 증거법 총론·자유심증":[0,1,2,5,8,9,11],
+ "제6강 위법수집증거·자백·전문법칙":[0,1,2,3,5,8],
+ "제7강 조서·진술서·제314조":[0,1,2,3,4,5,9,10,12,13],
+ "제8강 제315조·제316조·재전문·임의성":[0,1,5,6,8,9,10]
+};
+const OX_ADD={
+"제2강 공소장변경":[
+ {q:"범죄사실의 일부에 대한 공소제기의 효력은 공소사실의 단일성·동일성이 인정되는 범죄사실 전부에 미친다.",a:true,e:"공소불가분의 원칙(§248②). 공소제기의 물적 효력 범위 = 심판대상 = 공소장변경 한계 = 기판력의 객관적 범위.",s:"§248②",h:"형광펜: '공소사실의 단일성·동일성' → '전부'."},
+ {q:"포괄일죄의 일부가 단순일죄로 먼저 기소된 뒤 나머지가 포괄일죄로 추가기소된 경우, 판례는 추가기소에 대하여 공소기각판결을 하여야 한다고 본다.",a:false,e:"석명에 의하여 중복기소가 아님이 분명해지면 추가기소로 공소장변경이 이루어진 것으로 보아 전부 실체판단합니다. 공소기각판결은 필요 없습니다(96도1698, 석명후 판단설).",s:"96도1698",h:"형광펜: '석명후 판단설'."},
+ {q:"상상적 경합 관계에 있는 공소사실 중 일부가 먼저 기소된 뒤 나머지가 추가기소된 경우, 석명으로 중복기소가 아님이 분명해지면 공소장변경으로 보아 전부 실체판단을 하여야 한다.",a:true,e:"2012도2087. 포괄일죄와 같은 석명후 판단설입니다.",s:"2012도2087",h:"포괄일죄 추가기소와 같은 결론일까요?"},
+ {q:"법원이 공소장변경 없이 직권으로 다른 범죄사실을 인정하려면, 공소사실의 동일성 범위 내이고 피고인의 방어권 행사에 실질적인 불이익을 초래할 염려가 없어야 한다.",a:true,e:"98도667. 두 요건이 모두 필요합니다.",s:"98도667",h:"형광펜: ① 동일성 ② 방어권 행사에 실질적 불이익 염려 없음."},
+ {q:"강간치상으로 기소된 사건에서 그 공소사실에 포함된 준강제추행을 공소장변경 없이 유죄로 인정하는 것은 위법하다.",a:false,e:"공소사실에 준강제추행 사실이 포함되어 있어 방어권 행사에 실질적 불이익이 없으므로 적법합니다(2007도7260).",s:"2007도7260",h:"'축소사실' 인정 사례입니다."},
+ {q:"단독범으로 기소되었으나 공소사실이 실질적으로 공모관계를 전제한 것이 명백하고 공모 여부를 다투어 증인조사까지 이루어졌다면, 공소장변경 없이 공모공동정범으로 인정할 수 있다.",a:true,e:"방어권 행사에 실질적 불이익이 없으므로 공소장변경이 필요 없습니다(2007도309).",s:"2007도309",h:"공모가 이미 공방의 대상이었는지가 포인트."},
+ {q:"관세포탈죄의 공동정범으로 기소된 사건에서, 심리과정에서 한 번도 언급되지 않은 관세포탈 방조 범죄사실을 공소장변경 없이 유죄로 인정할 수 있다.",a:false,e:"방어의 기회가 전혀 없었던 방조 사실을 인정할 수는 없습니다(94도1684).",s:"94도1684",h:"공동정범→방조 직권 인정은 '방어의 기회가 제공된 경우'에 한합니다(2009도7166)."},
+ {q:"대법원은 준강간죄의 불능미수와 장애미수 사이에 범죄의 중대성, 죄질, 처벌가치 등의 측면에서 별다른 차이가 있다고 보기 어렵다고 하였다.",a:true,e:"2021도9043. 그래서 직권으로 불능미수를 인정했어야 한다고 보았습니다.",s:"2021도9043",h:"형광펜: '…별다른 차이가 있다고 보기도 어렵다'."}
+],
+"제3강 공판절차":[
+ {q:"형사사건의 실체에 대한 유죄·무죄의 심증 형성은 법정에서의 심리에 의하여야 한다.",a:true,e:"공판중심주의(2005도9730).",s:"2005도9730",h:"형광펜: '법정에서의 심리에 의하여야'."},
+ {q:"항소심에서 피고인 진술 없이 판결하려면, 피고인이 적법한 공판기일 통지를 받고도 2회 연속으로 정당한 이유 없이 출정하지 않았어야 한다.",a:true,e:"2005도9291.",s:"2005도9291",h:"형광펜: '2회 연속'."},
+ {q:"피고인이 주소지에 거주하지 않아 구속영장이 여러 차례 소재불명으로 집행불능 반환된 것은 소송촉진법상 '송달불능보고서 접수'로 볼 수 있다.",a:false,e:"구속영장 집행불능 반환은 해당하지 않고, 경찰관의 '소재탐지불능보고서' 접수는 해당합니다(2014모1557).",s:"2014모1557",h:"형광펜: '소재탐지불능보고서'."},
+ {q:"필요적 변호사건에서 피고인이 재판을 거부하며 무단 퇴정하고 변호인도 동조하여 퇴정했다면, 법원은 피고인·변호인 없이 심리·판결할 수 있다.",a:true,e:"방어권의 남용·변호권의 포기로 보아 피고인·변호인 없이 심리할 수 있고 증거동의 의제도 가능합니다(91도865).",s:"91도865",h:"형광펜: '방어권의 남용, 변호권의 포기'."},
+ {q:"법원은 합의부원으로 하여금 공판준비기일을 진행하게 할 수 있다.",a:true,e:"§266의7③. 이 경우 수명법관은 법원 또는 재판장과 동일한 권한을 가집니다.",s:"§266의7③",h:"형광펜: '합의부원으로 하여금'."},
+ {q:"제1심에서 공시송달로 소환한 피고인이 한 번 불출석하면 곧바로 피고인 진술 없이 재판할 수 있다.",a:false,e:"공시송달로 소환받은 피고인이 2회 이상 불출석해야 합니다(2011도1094).",s:"2011도1094",h:"공시송달 소환도 '2회 이상' 불출석이 필요할까요?"},
+ {q:"실질적 직접심리주의에 따르면 증명 대상 사실과 가장 가까운 원본 증거를 재판의 기초로 삼아야 하고, 원본 증거의 대체물 사용은 원칙적으로 허용되지 않는다.",a:true,e:"2006도4994.",s:"2006도4994",h:"'실질적 직접심리주의'의 정의 문장입니다."}
+],
+"제4강 증인신문·간이공판·국민참여재판":[
+ {q:"형사미성년자나 선서무능력자도 증언능력을 가질 수 있다.",a:true,e:"증언능력은 선서능력과 별개입니다.",s:"증언능력",h:"형광펜: '증언능력을 가질 수 있음'."},
+ {q:"유아의 증언능력 유무는 진술자의 연령을 기준으로 획일적으로 결정된다.",a:false,e:"연령만이 아니라 지적수준에 따라 개별적·구체적으로 결정합니다(2004도3161). 만 4년 6개월, 만 3년 7개월 피해자의 증언능력도 인정되었습니다.",s:"2004도3161",h:"형광펜: '개별적', '구체적'."},
+ {q:"이미 유죄판결이 확정되어 더 이상 공소제기나 유죄판결의 가능성이 없다면, 증인은 그 사실에 관하여 증언거부권을 행사할 수 없다.",a:true,e:"2011도11994 등.",s:"2011도11994",h:"형광펜: '확정' → '행사 불가'."},
+ {q:"피고인이 정당한 사유 없이 불출석한 공판기일에 이미 출석한 증인을 공판기일 외의 신문으로 신문하고, 다음 기일에 그 증인신문조서를 서증조사하는 것은 적법하다.",a:true,e:"2000도3265.",s:"2000도3265",h:"형광펜: '공판기일 외의 신문' / '서증조사'."},
+ {q:"간이공판절차는 항소심에서도 개시할 수 있다.",a:false,e:"제1심 관할사건에 대해서만 가능합니다(단독·합의부 불문). 항소심·상고심에서는 인정되지 않습니다.",s:"§286의2",h:"형광펜: '제1심 관할사건'."},
+ {q:"간이공판절차에서는 증거조사를 생략할 수 있다.",a:false,e:"생략할 수는 없고, '법원이 상당하다고 인정하는 방법'으로 할 수 있을 뿐입니다(§297의2).",s:"§297의2",h:"형광펜: '법원이 상당하다고 인정하는 방법'."},
+ {q:"변론의 병합은 사물관할을 같이하는 동일법원에 계속된 수개의 사건을 하나의 공판절차에서 심리하는 것이다.",a:true,e:"사물관할이 다르면 변론 병합이 아니라 관할의 병합심리 문제가 됩니다.",s:"변론의 병합",h:"형광펜: '사물관할을 같이' · '동일법원'."},
+ {q:"국민참여재판은 지방법원 지원 합의부에서도 실시할 수 있다.",a:false,e:"지방법원 '본원' 합의부에서만 실시합니다. 지원 합의부는 회부결정 후 본원으로 이송합니다(국참법 §10).",s:"국참법 §10",h:"형광펜: '지방법원 본원 합의부'."},
+ {q:"국민참여재판 대상사건을 의사확인 절차 없이 통상절차로 진행한 위법은, 피고인이 항소심에서 국민참여재판을 원하지 않고 그 위법을 문제삼지 않을 의사를 명백히 하면 치유된다.",a:true,e:"2012도1225. 원칙적으로 그 절차의 소송행위는 무효지만 하자가 치유될 수 있습니다.",s:"2012도1225",h:"형광펜: '하자가 치유'."},
+ {q:"국민참여재판의 배심원은 판사의 관여 없이 평의한 후 만장일치로 평결한다.",a:true,e:"국참법 §46②. 만장일치가 안 되면 판사의 의견을 들은 뒤 다수결로 평결합니다.",s:"국참법 §46②",h:"형광펜: '만장일치' / '다수결'."}
+],
+"제5강 증거법 총론·자유심증":[
+ {q:"명예훼손죄에서 형법 제310조의 위법성조각사유는 피고인이 증명해야 하지만, 엄격한 증거에 의할 필요는 없고 전문증거도 사용할 수 있다.",a:true,e:"95도1473.",s:"95도1473",h:"형광펜: '명예훼손죄에서의 사실의 증명'."},
+ {q:"뇌물죄의 수뢰액은 양형에 관한 사항이므로 자유로운 증명으로 족하다.",a:false,e:"수뢰액은 구성요건 해당 사실로서 엄격한 증명이 필요합니다(2009도2453).",s:"2009도2453",h:"형광펜: '구성요건 해당 사실 → 엄격한 증명 필요 인정 판례'."},
+ {q:"다른 형사사건의 공판조서 기재와 당해 사건 공판정 증언이 상반되면, 법원은 반드시 당해 사건 공판정의 증언을 믿어야 한다.",a:false,e:"그런 법칙은 없고 사실심법원의 자유심증에 속합니다(86도1547).",s:"86도1547",h:"형광펜: '반드시 … 믿어야 된다는 법칙은 없고'."},
+ {q:"간접증거가 개별적으로 완전한 증명력을 갖지 못하면 이를 종합하더라도 범죄사실을 인정할 수 없다.",a:false,e:"종합적으로 고찰하여 종합적 증명력이 인정되면 범죄사실을 인정할 수 있습니다(2001도4392).",s:"2001도4392",h:"형광펜: '종합적 증명력'."},
+ {q:"항소심은 제1심 증인 진술의 신빙성에 관한 제1심 판단을, 명백한 잘못 등 특별한 사정이 없는 한 함부로 뒤집어서는 안 된다.",a:true,e:"2006도4994. 뒤집으려면 충분하고도 납득할 만한 현저한 사정이 필요합니다.",s:"2006도4994",h:"형광펜: '함부로 뒤집어서는 아니 됨'."},
+ {q:"금원수수가 쟁점인 사건에서 금원을 제공하였다는 사람의 진술만으로 유죄를 인정하려면, 그 진술에 증거능력이 있고 합리적 의심을 배제할 신빙성이 있어야 한다.",a:true,e:"2008도8137.",s:"2008도8137",h:"형광펜: '금원을 제공하였다는 사람의 진술만으로'."},
+ {q:"유죄의 증거는 무죄의 증거보다 우월한 증명력을 가지면 충분하다.",a:false,e:"우월한 정도로는 부족하고 합리적인 의심을 할 여지가 없을 정도의 확신이 필요합니다(86도586).",s:"86도586",h:"형광펜: '합리적인 의심을 할 여지가 없을 정도의 확신'."},
+ {q:"사실인정이 자유심증주의의 한계를 벗어나 판결에 영향을 미쳤다면 상고심의 심판대상이 된다.",a:true,e:"2015도17869.",s:"2015도17869",h:"형광펜: '자유심증주의의 한계를 벗어나거나…'."}
+],
+"제6강 위법수집증거·자백·전문법칙":[
+ {q:"수사기관이 영장 혐의사실과 무관한 별개의 증거를 압수했더라도, 이를 피압수자에게 환부한 후 임의제출받아 다시 압수했다면 인과관계가 단절되었다고 평가할 수 있다.",a:true,e:"2013도11233. 다만 임의제출의 임의성은 검사가 합리적 의심을 배제할 정도로 증명해야 합니다.",s:"2013도11233",h:"형광펜: '환부한 후 임의제출받아 다시 압수'."},
+ {q:"자백에는 구성요건 해당 사실을 인정하면서 위법성조각사유를 주장하는 진술도 포함된다.",a:true,e:"범죄사실의 전부 또는 일부를 인정하는 진술이면 자백입니다.",s:"자백의 의의",h:"형광펜: '전부 또는 일부를 인정'."},
+ {q:"진술거부권을 고지하지 않고 얻은 피의자의 진술이라도 임의성이 인정된다면 증거능력이 있다.",a:false,e:"임의성이 인정되어도 위법수집증거로서 증거능력이 부정됩니다(92도682). 자백배제법칙과 별개로 파악합니다.",s:"92도682",h:"형광펜: '별개로 파악'."},
+ {q:"자백의 임의성을 의심할 만한 사유가 있더라도, 그 사유와 자백 사이에 인과관계가 없음이 명백하면 자백의 임의성이 인정된다.",a:true,e:"인과관계 필요설(판례). 다만 인과관계의 존재는 추정됩니다.",s:"인과관계의 요부",h:"형광펜: '인과관계 필요'."},
+ {q:"사기죄에서 기망 내용을 들었다는 피해자의 진술은, 원진술의 존재 자체가 요증사실이므로 본래증거이다.",a:true,e:"2012도2937.",s:"2012도2937",h:"형광펜: 원진술의 '존재' → '본래증거'."},
+ {q:"증거보전절차에서 피의자였던 피고인이 범행을 시인하는 전제로 증인에게 반대신문한 내용은 제311조에 의하여 증거능력이 인정된다.",a:false,e:"공판조서도 §184 증인신문조서도 아니므로 그 피의자 진술기재부분은 제311조로 증거능력을 인정할 수 없습니다(84도508).",s:"84도508",h:"형광펜: '형소법 제311조에 의한 증거능력을 인정할 수 없음'."},
+ {q:"전문법칙의 예외규정(§311~316)은 전문증거의 '내용인 진술(원진술)'을 유죄의 증거로 쓰기 위한 요건을 정한 것이다.",a:true,e:"강의안 각주의 정리입니다.",s:"전문법칙의 예외",h:"형광펜: '내용인 진술(=원진술)'."},
+ {q:"2007도3061 전원합의체 판결은 압수물은 압수절차가 위법해도 물건의 성질·형상이 변하지 않으므로 증거능력이 있다는 종래 판례를 유지하였다.",a:false,e:"성상불변론을 폐기하고 판례를 변경했습니다.",s:"2007도3061 전합",h:"제주지사실 압수수색 사건의 의미는 '판례 변경'이었어요."}
+],
+"제7강 조서·진술서·제314조":[
+ {q:"당해 피고인과 공범 관계에 있는 다른 피의자에 대한 사경 작성 피의자신문조서는, 당해 피고인이 그 내용을 부인하면 증거능력이 없다.",a:true,e:"제312조 제3항에 포함됩니다(2009도2865).",s:"2009도2865",h:"형광펜: '공범 관계' → '사경 작성 피의자신문조서' → '내용을 부인'."},
+ {q:"제312조 제3항의 '공범'에는 형법총칙상 공범만 포함되고 필요적 공범이나 대향범은 포함되지 않는다.",a:false,e:"필요적 공범·대향범도 포함됩니다(2020도15669).",s:"2020도15669",h:"형광펜: '필요적 공범 또는 대향범'."},
+ {q:"피고인의 별개 사건에서 사경이 작성한 피의자신문조서에도 제312조 제3항이 적용된다.",a:true,e:"94도2287.",s:"94도2287",h:"형광펜: '피고인의 별개 사건'."},
+ {q:"제312조 제3항의 '내용을 인정'한다는 것은 조서가 진술한 대로 기재되어 있다는 실질적 진정성립을 인정한다는 의미이다.",a:false,e:"진술한 내용이 '실제 사실과 부합'한다고 인정하는 것을 말합니다(2010도5040).",s:"2010도5040",h:"형광펜: '실제 사실과 부합'."},
+ {q:"피고인이 사경 작성 피의자신문조서에 대하여 '증거로 함에 부동의'하였다면, 이는 그 내용을 인정하지 않는다는 취지이다.",a:true,e:"96도667.",s:"96도667",h:"형광펜: '부동의'."},
+ {q:"공범 아닌 자에 대한 피의자신문조서는 당해 피고인에 대하여 진술조서로서 제312조 제4항이 적용된다.",a:true,e:"공범이면 제312조 제3항, 공범 아니면 제4항입니다.",s:"§312④",h:"형광펜: '공범 아닌 자' → '제312조 제4항'."},
+ {q:"조사 전 과정이 녹화되지 않은 영상녹화물이라도 진술조서의 실질적 진정성립을 증명하는 데 사용할 수 있다.",a:false,e:"동의서 첨부와 조사 전 과정 녹화 등 법정 방식을 위반한 영상녹화물로는 증명할 수 없습니다(2022도364).",s:"2022도364",h:"형광펜: '조사 전 과정이 영상녹화'."},
+ {q:"참고인이 수사과정에서 진술서를 작성했는데 수사기관이 조사과정을 기록하지 않았다면, 특별한 사정이 없는 한 '적법한 절차와 방식'이 인정되지 않는다.",a:true,e:"§244의4 위반(2022도9510).",s:"2022도9510",h:"형광펜: '조사과정을 기록'."},
+ {q:"사법경찰관 작성 검증조서에 피의자가 자백한 범행을 현장에서 재연한 내용이 기재되어 있다면, 그 부분에는 제312조 제6항이 적용된다.",a:false,e:"진술 성질에 따라 제312조 제3항이 적용되어, 피고인이 부인하면 증거능력이 없습니다(2003도6548).",s:"2003도6548",h:"형광펜: '제312조 제3항, 제4항 적용'."},
+ {q:"압수 당시 압수물의 존재 상황을 입증하기 위한 압수조서에는 제312조 제6항이 적용된다.",a:true,e:"작성자의 공판기일 증언으로 성립의 진정이 인정되어야 합니다(94도1476).",s:"94도1476",h:"형광펜: '압수물의 존재 상황' → '제312조 제6항'."},
+ {q:"선거관리위원회 문답서는 수사과정 이외에서 작성된 진술기재서류이다.",a:true,e:"2013도5441. 금감원 검사역 문답서, 조세공무원 심문조서 등도 같습니다.",s:"2013도5441",h:"형광펜: '시간적·장소적 범위 외'."},
+ {q:"정보저장매체 출력물을 증거로 쓰려면 원본과 출력 문건의 동일성이 인정되어야 하고, 그 전제로 무결성이 담보되어야 한다.",a:true,e:"2013도2511.",s:"2013도2511",h:"형광펜: '동일성' / '무결성'."},
+ {q:"피고인의 진술을 기재한 서류는 작성자의 진술로 성립의 진정이 증명되고 특신상태가 인정되면, 피고인이 성립의 진정을 부인하더라도 증거능력이 있다.",a:true,e:"완화요건설(2018도3914).",s:"2018도3914",h:"형광펜: '피고인이 진정성립을 부인하더라도 증거능력 인정됨'."},
+ {q:"제313조 제2항의 대체증명(디지털포렌식 등 객관적 방법)은 진술서뿐만 아니라 진술기재서류에도 적용된다.",a:false,e:"진술기재서류에는 적용되지 않습니다.",s:"§313②",h:"형광펜: '진술기재서류에는 적용되지 않음'."},
+ {q:"피고인 아닌 자가 작성한 진술서의 성립을 대체증명으로 증명하는 경우에는 반대신문권 보장 요건이 추가로 필요하다.",a:true,e:"§313② 단서. 두문자 '서/대/반'.",s:"§313② 단서",h:"형광펜: '대체증명' + '반대신문권 보장'."},
+ {q:"피고인이 증거서류의 진정성립을 묻는 검사의 질문에 진술거부권을 행사했다면 제314조의 '그 밖에 이에 준하는 사유'에 해당한다.",a:false,e:"해당하지 않습니다(2012도16001).",s:"2012도16001",h:"형광펜: '진술거부권을 행사' → '해당하지 않음'."},
+ {q:"제314조의 특신상태는 그러할 개연성이 있다는 정도로 증명되면 족하다.",a:false,e:"반대신문의 기회조차 없이 증거능력을 주는 것이므로 합리적 의심의 여지를 배제할 정도여야 합니다(2012도725).",s:"2012도725",h:"형광펜: '반대신문의 기회조차 없이'."},
+ {q:"피의자신문조서에 대하여는 제314조가 적용되지 않는다.",a:true,e:"통설. 공범에 대한 피신조서도 마찬가지입니다(2003도7185 전합).",s:"제314조 적용 범위",h:"형광펜: '피의자신문조서' → '적용되지 않음'."}
+],
+"제8강 제315조·제316조·재전문·임의성":[
+ {q:"제316조 제1항의 '피고인이 아닌 자'에는 공소제기 전에 피고인을 피의자로 조사하였거나 그 조사에 참여한 자도 포함된다.",a:true,e:"조사자증언 제도입니다.",s:"§316①",h:"형광펜: '조사자증언'."},
+ {q:"원진술자가 법정에 출석해 있더라도 특신상태가 증명되면 제316조 제2항의 전문진술은 증거능력이 있다.",a:false,e:"원진술자가 출석하면 진술 불능이 아니므로 증거능력이 없습니다.",s:"§316②",h:"형광펜: '법정에 출석' → '증거능력 없음'."},
+ {q:"피고인이 법정에서 한 진술이 피고인 아닌 타인의 진술을 내용으로 하는 경우, 제316조 제2항을 유추적용한다.",a:true,e:"다수설, 2018도13792 취지. 피고인에게 유리한지와 관계없습니다.",s:"2018도13792 취지",h:"형광펜: '제316조 제2항 유추적용'."},
+ {q:"진술의 '임의성'이란 증거의 수집과정에 위법성이 없다는 것을 의미한다.",a:true,e:"82도3248.",s:"82도3248",h:"형광펜: '위법성이 없다'."},
+ {q:"업무수첩 중 지시 사항 부분은 작성자의 진술로 성립의 진정이 증명되면 제313조 제1항에 따라 진술증거로 사용할 수 있다.",a:true,e:"2018도14303 전합.",s:"2018도14303 전합",h:"형광펜: '제313조 제1항' → '진술증거로 사용할 수 있다'."},
+ {q:"업무수첩의 대화 내용 부분을 대화 내용을 추단하는 간접사실의 증거로 사용하는 것은 허용된다.",a:false,e:"허용되지 않습니다. 직접증거로 쓸 수 없는 것을 결국 대화 내용 증명에 쓰는 결과가 되기 때문입니다(2018도14303 전합).",s:"2018도14303 전합",h:"형광펜: '간접사실의 증거로 사용하는 것도 허용되지 않는다'."},
+ {q:"2018도14303 사건의 업무수첩은 제315조 제3호의 '기타 특히 신용할 만한 정황에 의하여 작성된 문서'에 해당한다.",a:false,e:"사무처리 편의를 위해 경험한 사실을 적어둔 것에 지나지 않아 해당하지 않습니다.",s:"2018도14303 전합",h:"형광펜: '형사소송법 제315조 제3호에 해당하는지 여부'."},
+ {q:"2023도7301 판결은 피고인이 변호인의 동석 없이 진술했고 범인만 알 수 있는 내용의 자발적 진술도 없었다는 점을 들어 조사자증언의 특신상태를 부정하였다.",a:true,e:"그래서 경찰관의 조사자증언은 증거능력이 없다고 보았습니다.",s:"2023도7301",h:"형광펜: '변호인의 동석' / '범인만이 알 수 있는 내용'."}
+]
+};
+
+/* 판례 빈칸 (빈칸 여러 개 가능: {{정답|허용답}}) — 모두 강의안 형광펜·밑줄 문구 */
+const FB_NEW=[
+ {k:"2007도3061m",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",t:"그러므로 헌법과 형사소송법이 정한 {{절차}}에 따르지 아니하고 수집된 증거는 {{기본적 인권 보장|기본적인권보장}}을 위해 마련된 적법한 절차에 따르지 않은 것으로서 원칙적으로 {{유죄 인정의 증거|유죄의 증거|유죄인정의증거}}로 삼을 수 없다 할 것이다.",e:"위법수집증거배제의 원칙 선언.",lec:"제6강"},
+ {k:"2007도3061x",c:"대법원 2007. 11. 15. 선고 2007도3061 전원합의체 판결",t:"수사기관의 절차 위반행위가 {{적법절차의 실질적인 내용|적법절차의 실질적 내용}}을 침해하는 경우에 해당하지 아니하고, 오히려 그 증거의 증거능력을 배제하는 것이 … 적법절차의 원칙과 {{실체적 진실 규명}}의 조화를 도모하고 이를 통하여 {{형사 사법 정의|형사사법정의}}를 실현하려 한 취지에 반하는 결과를 초래하는 예외적인 경우라면, 법원은 그 증거를 유죄 인정의 증거로 사용할 수 있다.",e:"두문자 [적/침/배/반].",lec:"제6강"},
+ {k:"2008도763b",c:"대법원 2009. 3. 12. 선고 2008도763 판결",t:"그러한 예외적인 경우에 해당한다고 볼 만한 {{구체적이고 특별한 사정}}이 존재한다는 것을 {{검사}}가 입증하여야 한다.",e:"2007도3061 사건의 재상고심.",lec:"제6강"},
+ {k:"93도2080b",c:"대법원 1994. 3. 22. 선고 93도2080 전원합의체 판결",t:"그 {{자연적, 사회적 사실관계|자연적 사회적 사실관계}}나 피고인의 행위가 동일한 것인가 외에 그 {{규범적 요소}}도 기본적 사실관계 동일성의 실질적 내용의 일부를 이루는 것이라고 보는 것이 상당하다.",e:"장물취득죄와 강도상해죄의 동일성 부정.",lec:"제2강"},
+ {k:"98도1438b",c:"대법원 1999. 5. 14. 선고 98도1438 판결",t:"공소사실의 동일성은 그 사실의 기초가 되는 {{사회적 사실관계}}가 {{기본적인 점}}에서 동일하면 그대로 유지되는 것이나, … 피고인의 행위와 그 사회적인 사실관계를 기본으로 하되 {{규범적 요소}}도 아울러 고려하여야 한다.",e:"판례: 수정된 기본적 사실동일설(규범적 사실동일설).",lec:"제2강"},
+ {k:"2021도9043b",c:"대법원 2024. 4. 12. 선고 2021도9043 판결",t:"법원은 공소사실의 {{동일성}}이 인정되는 범위 내에서 심리의 경과에 비추어 피고인의 {{방어권}} 행사에 실질적인 불이익을 초래할 염려가 없다고 인정되는 때에는, 공소장이 변경되지 않았더라도 {{직권}}으로 공소장에 기재된 공소사실과 다른 범죄사실을 인정할 수 있다.",e:"직권심판의 요건.",lec:"제2강"},
+ {k:"2009도6788b",c:"대법원 2012. 5. 17. 선고 2009도6788 전원합의체 판결",t:"법정에 출석한 증인이 … 정당하게 {{증언거부권}}을 행사하여 증언을 거부한 경우는 형사소송법 제314조의 '{{그 밖에 이에 준하는 사유}}로 인하여 진술할 수 없는 때'에 해당하지 아니한다.",e:"제314조의 엄격 해석.",lec:"제7강"},
+ {k:"2018도13945b",c:"대법원 2019. 11. 21. 선고 2018도13945 전원합의체 판결",t:"수사기관에서 진술한 참고인이 법정에서 증언을 거부하여 피고인이 반대신문을 하지 못한 경우에는 {{정당하게}} 증언거부권을 행사한 것이 아니라도, 피고인이 증인의 {{증언거부 상황을 초래}}하였다는 등의 특별한 사정이 없는 한 제314조의 '그 밖에 이에 준하는 사유로 인하여 진술할 수 없는 때'에 해당하지 않는다.",e:"2009도6788 전합을 한 단계 더 넓힘.",lec:"제7강"},
+ {k:"2018도13945c",c:"대법원 2019. 11. 21. 선고 2018도13945 전원합의체 판결",t:"현행 형사소송법은 그 예외사유의 범위를 더욱 엄격하게 제한하고 있는데, 이는 {{직접심리주의}}와 {{공판중심주의}}의 요소를 강화하려는 취지가 반영된 것이다.",e:"제314조 개정 연혁의 의미.",lec:"제7강"},
+ {k:"2015도2625b",c:"대법원 2015. 7. 16. 선고 2015도2625 전원합의체 판결",t:"이러한 문서는 업무의 {{기계적 반복성}}으로 인하여 허위가 개입될 여지가 적고, 또 문서의 성질에 비추어 고도의 {{신용성}}이 인정되어 {{반대신문}}의 필요가 없거나 작성자를 소환해도 {{서면제출}} 이상의 의미가 없는 것들에 해당하기 때문에 당연히 증거능력이 인정된다.",e:"제315조의 입법취지.",lec:"제8강"},
+ {k:"2015도2625c",c:"대법원 2015. 7. 16. 선고 2015도2625 전원합의체 판결",t:"당해 문서가 {{정규적·규칙적|정규적규칙적}}으로 이루어지는 업무활동으로부터 나온 것인지 여부, 당해 문서를 작성하는 것이 {{일상적인 업무 관행}} 또는 직무상 강제되는 것인지 여부, 당해 문서에 기재된 정보가 그 취득된 {{즉시 또는 그 직후}}에 이루어져 정확성이 보장될 수 있는 것인지 여부 … 등을 종합적으로 고려하여야 한다.",e:"업무상 통상문서 판단 요소.",lec:"제8강"},
+ {k:"2015도2625d",c:"대법원 2015. 7. 16. 선고 2015도2625 전원합의체 판결",t:"당해 문서의 기록이 비교적 기계적으로 행하여지는 것이어서 그 기록 과정에 기록자의 {{주관적 개입}}의 여지가 거의 없다고 볼 수 있는지 여부, 당해 문서가 {{공시성}}이 있는 등으로 사후적으로 내용의 정확성을 {{확인·검증|확인검증}}할 기회가 있어 신용성이 담보되어 있는지 여부",e:"업무상 통상문서 판단 요소(후단).",lec:"제8강"},
+ {k:"2018도14303b",c:"대법원 2019. 8. 29. 선고 2018도14303 전원합의체 판결",t:"원진술의 {{내용인 사실}}이 요증사실인 경우에는 {{전문증거}}이지만, 원진술의 존재 자체가 요증사실인 경우에는 {{본래증거}}이지 전문증거가 아니다.",e:"전문증거 여부는 요증사실과의 관계에서 상대적으로 결정.",lec:"제8강"},
+ {k:"2018도14303c",c:"대법원 2019. 8. 29. 선고 2018도14303 전원합의체 판결",t:"공소외 1의 업무수첩 중 {{지시 사항}} 부분은 형사소송법 {{제313조 제1항|313조 1항|제313조제1항}}에 따라 공판준비나 공판기일에서 그 작성자인 공소외 1의 진술로 성립의 진정함이 증명된 경우에는 {{진술증거}}로 사용할 수 있다.",e:"지시 사항 부분의 취급.",lec:"제8강"},
+ {k:"2018도14303d",c:"대법원 2019. 8. 29. 선고 2018도14303 전원합의체 판결",t:"어떠한 내용의 진술을 하였다는 사실 자체에 대한 {{정황증거}}로 사용될 것이라는 이유로 서류의 증거능력을 인정한 다음 그 사실을 다시 진술 내용이나 그 진실성을 증명하는 {{간접사실}}로 사용하는 경우에 그 서류는 {{전문증거}}에 해당한다.",e:"우회 사용 금지.",lec:"제8강"},
+ {k:"2023도7301b",c:"대법원 2023. 10. 26. 선고 2023도7301 판결",t:"'그 진술이 특히 신빙할 수 있는 상태하에서 행하여졌음'이란 그 진술을 하였다는 것에 {{허위 개입의 여지|허위개입의 여지}}가 거의 없고, 그 진술내용의 {{신빙성이나 임의성}}을 담보할 {{구체적이고 외부적인 정황}}이 있음을 의미한다.",e:"두문자 [허/신/담/정].",lec:"제8강"},
+ {k:"2023도7301c",c:"대법원 2023. 10. 26. 선고 2023도7301 판결",t:"그런데 피고인은 조사 당시 {{변호인의 동석}} 없이 진술하였고, 피고인의 진술 중 {{범인만이 알 수 있는 내용}}에 관한 자발적, 구체적 진술로 평가될 수 있는 부분도 존재하지 아니한다.",e:"특신상태 부정 근거.",lec:"제8강"},
+ {k:"2023도13081b",c:"대법원 2024. 1. 4. 선고 2023도13081 판결",t:"법관은 검사가 제출하여 공판절차에서 {{적법하게 채택·조사한 증거|적법하게 채택 조사한 증거}}만으로 유죄를 인정하여야 하고, 법관이 {{합리적인 의심}}을 할 여지가 없을 만큼 확신을 가지는 정도의 증명력을 가진 엄격한 증거에 의하여 공소사실을 증명할 책임은 {{검사}}에게 있다.",e:"형소법 §307②의 의미.",lec:"제5강"},
+ {k:"2023도13081c",c:"대법원 2024. 1. 4. 선고 2023도13081 판결",t:"무죄추정의 원칙은 … '{{의심스러우면 피고인의 이익으로}}'라는 오래된 법언에 내포된 것이며 우리 형사법의 기초를 이루고 있다.",e:"in dubio pro reo.",lec:"제5강"},
+ {k:"2003도7185b",c:"대법원 2004. 7. 15. 선고 2003도7185 전원합의체 판결",t:"그 피의자의 법정진술에 의하여 그 {{성립의 진정}}이 인정되더라도 당해 피고인이 공판기일에서 그 조서의 내용을 {{부인}}하면 증거능력이 부정되므로 그 당연한 결과로 … 형사소송법 {{제314조}}가 적용되지 아니한다.",e:"공범에 대한 사경 피신조서와 제314조.",lec:"제7강"},
+ {k:"2015도17115b",c:"대법원 2016. 2. 18. 선고 2015도17115 판결",t:"증언 자체를 거부하는 의사가 분명한 경우가 아닌 한 … 우선 {{사법공조}}의 절차에 의하여 증인을 소환할 수 있는지 여부를 검토해 보아야 하고, 소환을 할 수 없는 경우라고 하더라도 외국의 법원에 사법공조로 {{증인신문}}을 실시하도록 요청하는 등의 절차를 거쳐야 한다.",e:"'외국거주'만으로는 부족.",lec:"제7강"},
+ {k:"2023도15133b",c:"대법원 2024. 3. 28. 선고 2023도15133 판결",t:"이 사건 영상녹화물은 {{수사과정 외}}에서 작성된 것이라고 볼 수 없으므로 형사소송법 {{제313조 제1항|313조 1항|제313조제1항}}에 따라 증거능력을 인정할 수 없다. … 형사소송법 {{제312조|312조}}에 의하여 증거능력을 인정할 수도 없다.",e:"진술분석관 영상녹화물.",lec:"제7강"},
+ {k:"2012도725",c:"대법원 2012도725 판결 (강의안 정리)",t:"제314조의 증거능력 인정은 … 직접심리주의 등 기본원칙에 대한 예외를 인정한 데 대하여 다시 중대한 예외를 인정하여 {{반대신문의 기회}}조차 없이 증거능력을 부여할 수 있도록 한 것이므로, '특히 신빙할 수 있는 상태하에서 행하여졌음에 대한 증명'은 단지 그러할 개연성이 있다는 정도로는 부족하고 {{합리적인 의심의 여지}}를 배제할 정도에 이르러야 한다.",e:"제314조·제316조②의 특신상태 증명 정도.",lec:"제7강"},
+ {k:"2022도364",c:"대법원 2022도364 판결 (강의안 정리)",t:"영상녹화 시작 전에 피고인 아닌 자의 {{동의}}를 받고, 그에 관해서 피고인 아닌 자가 기명날인 또는 서명한 {{영상녹화 동의서}}를 첨부해야 하며, 조사 개시 시점부터 조사 종료 시점까지 {{조사 전 과정}}이 영상녹화되어야 한다.",e:"이를 위반한 영상녹화물로는 실질적 진정성립을 증명할 수 없음.",lec:"제7강"},
+ {k:"2013도2511",c:"대법원 2013도2511 판결 (강의안 정리)",t:"정보저장매체 원본에 저장된 내용과 출력 문건의 {{동일성}}이 인정되어야 하고, 이를 위해서는 정보저장매체 원본이 압수 시부터 문건 출력 시까지 변경되지 않았다는 사정, 즉 {{무결성}}이 담보되어야 한다.",e:"해시값 비교 등으로 증명.",lec:"제7강"},
+ {k:"2020도3972",c:"대법원 2020도3972 판결 (강의안 정리)",t:"사인이 위법하게 수집한 증거라고 하여 그 증거능력이 모두 부정되는 것은 아니고, 법원으로서는 효과적인 형사소추 및 형사소송에서의 {{진실발견이라는 공익}}과 {{개인의 인격적 이익}} 등의 보호이익을 {{비교형량}}하여 그 증거능력 유무를 결정하여야 한다.",e:"이익형량설.",lec:"제6강"},
+ {k:"2013도11233",c:"대법원 2013도11233 판결 (강의안 정리)",t:"수사기관이 별개의 증거를 피압수자 등에게 {{환부}}한 후 {{임의제출}}받아 다시 압수하였다면 최초의 절차 위반행위와의 인과관계가 {{단절}}되었다고 평가할 수 있다.",e:"임의성은 검사가 합리적 의심 배제 정도로 증명.",lec:"제6강"},
+ {k:"2008도11437",c:"대법원 2008도11437 판결 (강의안 정리)",t:"제1심 법정에서의 자백은 최초 자백 이후 신문 시에는 {{진술거부권}} 고지가 이루어진 점, 법정 자백이 최초 자백 이후 약 {{40일}}이 지나 {{변호인의 충분한 조력}}을 받으며 공개 법정에서 임의로 이루어진 점을 고려하면 예외적으로 유죄 인정의 증거로 사용할 수 있는 2차적 증거에 해당한다.",e:"인과관계 희석·단절 인정례.",lec:"제6강"},
+ {k:"2004도7900",c:"대법원 2004도7900 판결 (강의안 정리)",t:"기록상 진술증거의 임의성에 관하여 의심할 만한 사정이 나타나 있는 경우에는 법원은 {{직권}}으로 그 임의성 여부에 관하여 조사를 하여야 하고, 임의성이 인정되지 아니하여 증거능력이 없는 진술증거는 피고인이 증거로 함에 {{동의}}하더라도 증거로 삼을 수 없다.",e:"임의성은 증거능력 요건(§317).",lec:"제8강"},
+ {k:"99도5679",c:"대법원 99도5679 판결 (강의안 정리)",t:"피고인 아닌 타인이 {{공동피고인}}인 경우, 그 공동피고인이 {{법정에서}} 공소사실을 부인하고 있다면 '원진술자가 진술할 수 없는 경우'에 해당하지 않아 그 진술을 내용으로 하는 전문진술은 증거능력이 없다.",e:"제316조② 진술불능 요건.",lec:"제8강"},
+ {k:"84도2279",c:"대법원 84도2279 판결 (강의안 정리)",t:"제316조 제1항의 '피고인'은 {{당해 피고인}}만을 의미하므로, 공범이나 공동피고인은 {{피고인 아닌 타인}}에 해당한다.",e:"그래서 공범의 진술을 들은 자의 증언에는 제316조②.",lec:"제8강"},
+ {k:"2000도159",c:"대법원 2000. 3. 10. 선고 2000도159 판결",t:"재전문서류는 {{제312조 내지 제314조|제312~314조|312조~314조}}의 요건과 {{제316조}}의 요건을 모두 갖춘 때에 예외적으로 증거능력이 인정되고, 재전문진술이나 재전문진술을 기재한 조서는 피고인이 증거로 하는 데 {{동의}}하지 아니하는 한 증거능력이 없다.",e:"재전문의 증거능력.",lec:"제8강"},
+ {k:"2014도18006",c:"대법원 2014도18006 판결 (강의안 정리)",t:"반대신문권 보장을 위하여 {{변호인에 대한 가림시설}} 설치는 이미 인적사항에 관하여 비밀조치가 취해진 증인이 변호인을 대면하여 진술함으로써 심한 심리적 부담을 느끼는 등 특별한 사정이 있는 경우에 한하여 {{예외적으로}} 허용된다.",e:"가명 증인 사례.",lec:"제4강"},
+ {k:"2004도3161",c:"대법원 2004도3161 판결 (강의안 정리)",t:"유아의 증언능력 유무는 단지 진술자의 연령만에 의할 것이 아니라 그의 {{지적수준}}에 따라 {{개별적}}이고 {{구체적}}으로 결정되어야 한다.",e:"만 4년 6개월 피해자의 증언능력 인정.",lec:"제4강"},
+ {k:"73도2967",c:"대법원 73도2967 판결 (강의안 정리)",t:"법원이 피고인에게 법정 외 증인신문의 일시와 장소를 {{미리 통지}}하지 않고 증인신문한 것은 위법하나, 그 후 피고인 또는 변호인이 이의를 제기하지 않았다면 그 절차상의 하자는 {{책문권의 포기}}로 치유된다.",e:"증거조사 자체가 없었다면 증거능력 없음(67도613).",lec:"제4강"},
+ {k:"2000도3265",c:"대법원 2000도3265 판결 (강의안 정리)",t:"이미 출석하여 있는 증인에 대하여 {{공판기일 외의 신문}}으로서 증인신문을 하고 다음 공판기일에 그 증인신문조서에 대한 {{서증조사}}를 하는 것은 증거조사절차로서 적법하다.",e:"피고인 무단 불출석 사안.",lec:"제4강"},
+ {k:"2012도1225",c:"대법원 2012도1225 판결 (강의안 정리)",t:"피고인이 항소심에서 국민참여재판을 원하지 않는다고 하면서 제1심의 절차적 위법을 문제삼지 않을 의사를 명백히 표시하는 경우에는 {{하자가 치유}}되어 제1심 공판절차는 전체로서 {{적법}}하게 된다.",e:"원칙적으로는 소송행위 무효.",lec:"제4강"},
+ {k:"2014도8377",c:"대법원 2014도8377 판결 (강의안 정리)",t:"재판장의 최초 설명은 피고인에게 {{진술거부권}}을 고지하기 전에 이루어지는 것으로, 원칙적으로 그 설명의 대상에 검사가 아직 공소장에 의하여 낭독하지 않은 {{공소사실}} 등이 포함된다고 볼 수 없다.",e:"국민참여재판 최초 설명.",lec:"제4강"},
+ {k:"91도865",c:"대법원 91도865 판결 (강의안 정리)",t:"피고인이 재판거부의 의사를 표시하고 재판장의 허가 없이 퇴정하고 변호인마저 이에 동조하여 퇴정해버린 것은 피고인 측의 {{방어권의 남용}}, {{변호권의 포기}}로 볼 수밖에 없다.",e:"필요적 변호사건의 예외.",lec:"제3강"},
+ {k:"2014모1557",c:"대법원 2014모1557 결정 (강의안 정리)",t:"구속영장이 소재불명으로 집행불능되어 반환된 것을 소송촉진법상 '송달불능보고서 접수'로 볼 수 없고, 경찰관의 '{{소재탐지불능보고서}} 접수'는 위 '{{송달불능보고서}} 접수'로 볼 수 있다.",e:"소송촉진법 §23 불출석 재판.",lec:"제3강"},
+ {k:"2006도4994",c:"대법원 2006. 11. 24. 선고 2006도4994 판결",t:"형사소송법은 형사사건의 실체에 대한 유죄·무죄의 심증 형성은 {{법정에서의 심리}}에 의하여야 한다는 공판중심주의의 한 요소로서, 법관의 면전에서 {{직접}} 조사한 증거만을 재판의 기초로 삼을 수 있고 증명 대상이 되는 사실과 가장 가까운 {{원본 증거}}를 재판의 기초로 삼아야 하며 원본 증거의 {{대체물}} 사용은 원칙적으로 허용되어서는 안 된다는 실질적 직접심리주의를 채택하고 있다.",e:"실질적 직접심리주의.",lec:"제3강"},
+ {k:"2009도14065",c:"대법원 2009도14065 판결 (강의안 정리)",t:"배심원이 만장일치의 의견으로 내린 무죄 평결이 그대로 채택된 경우, 항소심에서의 새로운 증거조사를 통해 그에 명백히 반대되는 {{충분하고도 납득할 만한 현저한 사정}}이 나타나지 않는 한 제1심의 판단은 한층 더 {{존중}}될 필요가 있다.",e:"국참 무죄평결 존중.",lec:"제5강"},
+ {k:"2001도4392",c:"대법원 2001도4392 판결 (강의안 정리)",t:"간접증거가 개별적으로는 범죄사실에 대한 완전한 증명력을 가지지 못하더라도 전체 증거를 상호 관련하에 {{종합적}}으로 고찰할 경우 그 단독으로는 가지지 못하는 {{종합적 증명력}}이 있는 것으로 판단되면 그에 의하여도 범죄사실을 인정할 수 있다.",e:"간접증거의 증명력.",lec:"제5강"},
+ {k:"2022도14645",c:"대법원 2022도14645 판결 (강의안 정리)",t:"유죄의 인정은 피고인이 범행한 것으로 보기에 충분할 만큼 {{압도적으로 우월한 증명}}이 있어야 한다.",e:"합리적 의심 없는 증명.",lec:"제5강"},
+ {k:"2009도2865",c:"대법원 2009도2865 판결 (강의안 정리)",t:"당해 피고인과 {{공범 관계}}에 있는 다른 피고인이나 피의자에 대한 사경 작성 피의자신문조서도 제312조 {{제3항|3항}}의 '사경 작성 피의자신문조서'에 포함되므로, 피고인이 그 {{내용을 부인|내용 부인}}하는 경우 증거능력이 없다.",e:"공범에는 필요적 공범·대향범 포함(2020도15669).",lec:"제7강"},
+ {k:"2018도3914",c:"대법원 2018도3914 판결 (강의안 정리)",t:"피고인의 진술을 기재한 서류는 작성자의 진술에 의하여 진정성립이 증명되고 {{특신상태}}가 인정되면, 피고인이 진정성립을 {{부인}}하더라도 증거능력이 인정된다.",e:"완화요건설.",lec:"제7강"}
+];
+
+/* 기존 문항에 하이라이트 표시, 신규 문항 병합, 빈칸 형식 통일 */
+(function mergeBank(){
+  Object.keys(OX_BANKS).forEach(b=>{
+    OX_BANKS[b].forEach((q,i)=>q.hl=(HL_MAP[b]||[]).includes(i));
+    (OX_ADD[b]||[]).forEach(q=>{q.hl=true;OX_BANKS[b].push(q)});
+  });
+  const conv=FB_BANK.map(q=>({k:q.k,c:q.c,t:q.pre+"{{"+[q.ans].concat(q.ok).join("|")+"}}"+q.post,e:q.e,lec:q.lec}));
+  FB_BANK.length=0; conv.concat(FB_NEW).forEach(q=>FB_BANK.push(q));
+  FB_BANK.forEach(q=>{
+    q.hl=true; q.blanks=[]; q.parts=[];
+    let last=0; const re=/\{\{([^}]+)\}\}/g; let m;
+    while((m=re.exec(q.t))){q.parts.push(q.t.slice(last,m.index)); const alts=m[1].split("|"); q.blanks.push({ans:alts[0],ok:alts}); last=re.lastIndex}
+    q.parts.push(q.t.slice(last));
+    q.ans=q.blanks.map(b=>b.ans).join(" / ");
+  });
+})();
+
+/* ================= 출제 (문제은행 랜덤 추출) ================= */
+const N_OX=30, N_FB=10, N=N_OX+N_FB, EXAM_SEC=15*60;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function drawExam(){
+  // O/X: 강의별 은행에서 고르게, 각 은행 몫의 60% 이상은 형광펜·볼드 문구 문항
+  const names=Object.keys(OX_BANKS), per={};
+  names.forEach(n=>per[n]=Math.floor(N_OX/names.length));
+  shuffle(names).slice(0,N_OX-names.length*Math.floor(N_OX/names.length)).forEach(n=>per[n]++);
+  let ox=[];
+  names.forEach(n=>{
+    const pool=shuffle(OX_BANKS[n]), hl=pool.filter(q=>q.hl), need=Math.ceil(per[n]*0.6);
+    const pick=hl.slice(0,need); pool.forEach(q=>{if(pick.length<per[n]&&!pick.includes(q))pick.push(q)});
+    pick.forEach(q=>ox.push(Object.assign({bank:n},q)));
+  });
+  ox=shuffle(ox);
+  // 판례 빈칸: 형광펜 문구 은행에서 10개, 같은 판례는 한 번만
+  const fb=[], seen=new Set();
+  for(const q of shuffle(FB_BANK)){ if(seen.has(q.c))continue; seen.add(q.c); fb.push(q); if(fb.length===N_FB)break; }
+  return {ox,fb};
+}
+let OX=[], FB=[];
+
+/* ================= 상태 ================= */
+let S={phase:"intro",idx:0,ox:[],fb:[],hint:[],warns:0,left:EXAM_SEC,name:"응시자",cheated:false,filter:"all",peekN:0};
+const $=id=>document.getElementById(id);
+const norm=s=>(s||"").replace(/[\s·ㆍ⋅‧•・,.'"‘’“”()\-]/g,"").toLowerCase();
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const CHO="ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+function chosung(s){return [...s].map(ch=>{const c=ch.charCodeAt(0);return c>=0xAC00&&c<=0xD7A3?CHO[Math.floor((c-0xAC00)/588)]:(ch===" "?" ":ch)}).join("")}
+function blankOk(q,j,v){v=norm(v);return !!v&&q.blanks[j].ok.some(o=>norm(o)===v)}
+function fbFrac(k){const q=FB[k];let c=0;q.blanks.forEach((b,j)=>{if(blankOk(q,j,S.fb[k][j]))c++});return c/q.blanks.length}
+function isRight(i){if(i<N_OX)return S.ox[i]===OX[i].a;return fbFrac(i-N_OX)===1}
+
+/* ================= 시험지 ================= */
+function memoHTML(i){
+  if(!S.hint[i])return "";
+  if(i<N_OX){const q=OX[i];return `<div class="memo"><span class="memo-h">옆자리 답안지 여백 메모</span>${esc(q.h)}<span class="memo-s">↳ 근거로 적어둔 것: ${esc(q.s)}</span></div>`}
+  const q=FB[i-N_OX], cir="①②③④⑤⑥";
+  return `<div class="memo"><span class="memo-h">옆자리 답안지 여백 메모</span>${q.blanks.map((b,j)=>`${q.blanks.length>1?cir[j]+" ":""}<span class="cho">${esc(chosung(b.ans))}</span> (첫 글자 “${esc(b.ans[0])}”)`).join("<br>")}<span class="memo-s">↳ ${esc(q.lec)} 강의안 형광펜 부분이라고 적혀 있다</span></div>`;
+}
+function toolsHTML(i){
+  return `<div class="tools">${i>=N_OX?`<span>빈칸 ${FB[i-N_OX].blanks.length}개 · 글자 수 ${FB[i-N_OX].blanks.map(b=>b.ans.length+"자").join(", ")} · Enter로 다음 칸</span>`:`<span>단축키 O / X · ← →</span>`}${S.hint[i]?"":`<span>· 막히면 옆자리를 훔쳐보세요 (걸리면 경고)</span>`}</div>`;
+}
+function renderQ(){
+  const i=S.idx, area=$("qArea");
+  if(i<N_OX){
+    const q=OX[i], v=S.ox[i];
+    area.innerHTML=`<div class="part"><span>Ⅰ. 옳으면 O, 틀리면 X (각 2점)</span><em>${esc(q.bank)}</em></div>
+      <p class="qtext"><span class="qno">${i+1}.</span>${esc(q.q)}</p>
+      <div class="ox" role="group" aria-label="${i+1}번 답">
+        <button class="oxb ${v===true?"sel":""}" id="bO" type="button" aria-pressed="${v===true}">O</button>
+        <button class="oxb ${v===false?"sel":""}" id="bX" type="button" aria-pressed="${v===false}">X</button>
+      </div>${toolsHTML(i)}${memoHTML(i)}`;
+    $("bO").onclick=()=>{S.ox[i]=true;scribble();renderQ();renderGrid()};
+    $("bX").onclick=()=>{S.ox[i]=false;scribble();renderQ();renderGrid()};
+  }else{
+    const k=i-N_OX, q=FB[k], cir="①②③④⑤⑥";
+    let body=esc(q.parts[0]);
+    q.blanks.forEach((b,j)=>{const w=Math.max(2.4,b.ans.length*0.85+0.8);body+=`<input class="blank" id="bl${j}" data-j="${j}" type="text" autocomplete="off" spellcheck="false" aria-label="${i+1}번 빈칸 ${j+1}" placeholder="${q.blanks.length>1?cir[j]:""}" style="width:${w}em" value="${esc(S.fb[k][j]||"")}">`+esc(q.parts[j+1])});
+    area.innerHTML=`<div class="part"><span>Ⅱ. 판례 문구의 빈칸을 채우시오 (각 4점${q.blanks.length>1?", 모든 빈칸을 맞혀야 득점":""})</span><em>${esc(q.lec)} 형광펜</em></div>
+      <p class="case"><span class="qno">${i+1}.</span>${esc(q.c)}</p>
+      <p class="qtext">${body}</p>${toolsHTML(i)}${memoHTML(i)}`;
+    area.querySelectorAll("input.blank").forEach(inp=>{const j=+inp.dataset.j;
+      const base=parseFloat(inp.style.width);const grow=()=>{inp.style.width=Math.max(base,inp.value.length*0.85+0.8)+"em"};grow();
+      inp.oninput=()=>{S.fb[k][j]=inp.value;grow();scribble();renderGrid()};
+      inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const nx=$("bl"+(j+1));if(nx)nx.focus();else go(1)}};
+    });
+  }
+  $("pos").textContent=`${i+1} / ${N}`;
+  $("prevBtn").disabled=i===0; $("nextBtn").disabled=i===N-1;
+  area.scrollTop=0;
+}
+function isDone(i){return i<N_OX?S.ox[i]!==null:FB[i-N_OX].blanks.every((b,j)=>norm(S.fb[i-N_OX][j]).length>0)}
+function renderGrid(){
+  const g=$("grid");
+  if(!g.children.length){for(let i=0;i<N;i++){const b=document.createElement("button");b.type="button";b.className="cell"+(i>=N_OX?" fb":"");b.textContent=i+1;b.setAttribute("aria-label",`${i+1}번으로 이동`);b.onclick=()=>{S.idx=i;renderQ();renderGrid()};g.appendChild(b)}}
+  [...g.children].forEach((b,i)=>{b.classList.toggle("done",isDone(i));b.classList.toggle("cur",i===S.idx)});
+  let n=0;for(let i=0;i<N;i++)if(isDone(i))n++;
+  $("answered").textContent=`${n}/${N}`;
+}
+function go(d){S.idx=Math.min(N-1,Math.max(0,S.idx+d));renderQ();renderGrid()}
+$("prevBtn").onclick=()=>go(-1); $("nextBtn").onclick=()=>go(1);
+document.addEventListener("keydown",e=>{
+  if(S.phase!=="exam"||document.activeElement?.classList.contains("blank")||!$("confirm").hidden)return;
+  if(e.key==="ArrowRight")go(1); else if(e.key==="ArrowLeft")go(-1);
+  else if(S.idx<N_OX&&(e.key==="o"||e.key==="O")){S.ox[S.idx]=true;renderQ();renderGrid()}
+  else if(S.idx<N_OX&&(e.key==="x"||e.key==="X")){S.ox[S.idx]=false;renderQ();renderGrid()}
+});
+
+/* ================= 진행 ================= */
+let timerId=null;
+function fmt(s){s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function startExam(){
+  const d=drawExam(); OX=d.ox; FB=d.fb;
+  S={phase:"exam",idx:0,ox:Array(N_OX).fill(null),fb:FB.map(q=>q.blanks.map(()=>"")),hint:Array(N).fill(false),warns:0,left:EXAM_SEC,name:($("nameIn").value||"").trim()||"응시자",cheated:false,filter:"all",peekN:0};
+  $("nameOut").textContent=S.name; $("warns").textContent="0/3"; $("timeLeft").textContent=fmt(EXAM_SEC); $("timeChip").classList.remove("hot");
+  $("grid").innerHTML=""; $("paper").classList.remove("down"); lookUp=false; $("lookBtn").textContent="고개 들기";
+  $("intro").hidden=true; $("result").hidden=true; $("hud").hidden=false; $("paperWrap").hidden=false;
+  renderGrid(); renderQ();
+  say("자, 시작하세요. 15분이면 충분해요. 천천히, 그러나 빠르게요.",4200,true);
+  nextIdle=performance.now()+12000;
+  clearInterval(timerId);
+  timerId=setInterval(()=>{
+    if(S.phase!=="exam")return;
+    S.left--; $("timeLeft").textContent=fmt(S.left);
+    if(S.left===300){say("5분 남았어요. 빈칸은 비워두지 말고 뭐라도 써봐요.",4000,true);$("timeChip").classList.add("hot")}
+    if(S.left===60)say("1분! 이름 썼는지 한 번만 확인해요.",3500,true);
+    if(S.left<=0){say("자, 펜 내려놓으세요. 답안지 걷겠습니다.",3500,true);finish()}
+  },1000);
+}
+$("startBtn").onclick=startExam;
+$("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")startExam()});
+$("submitBtn").onclick=()=>{
+  let n=0;for(let i=0;i<N;i++)if(isDone(i))n++;
+  $("confirmMsg").textContent=n<N?`아직 ${N-n}문항이 비어 있습니다. 남은 시간 ${fmt(S.left)}. 그래도 제출할까요?`:`40문항 모두 답했습니다. 남은 시간 ${fmt(S.left)}.`;
+  $("confirm").hidden=false; $("doSubmit").focus();
+};
+$("cancelSubmit").onclick=()=>{$("confirm").hidden=true};
+$("doSubmit").onclick=()=>{$("confirm").hidden=true;say("수고 많았어요. 남은 초코송이는 다들 가져가세요.",3800,true);finish()};
+
+function grade(t){if(t>=95)return"A+";if(t>=90)return"A0";if(t>=85)return"A-";if(t>=80)return"B+";if(t>=75)return"B0";if(t>=70)return"B-";if(t>=65)return"C+";if(t>=60)return"C0";if(t>=55)return"C-";if(t>=50)return"D+";if(t>=45)return"D0";return"F"}
+const COMMENTS={
+ A:["판례를 외운 게 아니라 판례가 되어버렸군요. 초코송이 두 개 가져가세요.","제가 영동지청에 있을 때 이 정도 하는 실무관이 있었으면 야근이 없었을 거예요.","이 답안지는 제315조 문서예요. 반대신문이 필요 없을 정도로 신용성이 높아요."],
+ B:["적법절차의 실질적인 내용은 침해하지 않았어요. 무난합니다.","기본적 사실관계는 동일한데 규범적 요소가 조금 아쉽네요.","형광펜 친 곳만 한 번 더 보면 A예요. 진짜로요."],
+ C:["인과관계가 희석되긴 했는데 단절까지는 아니군요.","특신상태가 증명될락 말락 해요. 합리적 의심이 조금 남아요.","제가 로스쿨에 다니던 때도 첫 시험은 이랬어요. 괜찮아요."],
+ D:["이 답안의 증명력은 자유심증에 맡기겠습니다… 조금 낮게요.","합리적인 의심의 여지가 꽤 많아요. 같이 다시 봐요.","초코송이 먹고 기운 내서 재시험 봐요."],
+ F:["이 답안지는 원진술의 존재 자체만 증명하네요. 내용은 다시 공부해요.","의심스러우면 피고인의 이익으로. 그런데 학점은 그렇지 않아요.","재시험은 이중위험금지 원칙에 걸리지 않습니다. 다시 해봐요."]
+};
+function finish(){
+  if(S.phase==="result")return;
+  S.phase="result"; clearInterval(timerId);
+  if(document.activeElement)document.activeElement.blur();
+  let ox=0,fb=0;
+  for(let i=0;i<N_OX;i++)if(isRight(i))ox+=2;
+  for(let k=0;k<N_FB;k++)if(fbFrac(k)===1)fb+=4;
+  const total=S.cheated?0:Math.round((ox+fb)*10)/10, g=S.cheated?"F":grade(total);
+  $("repWho").textContent=`성명 ${S.name} · 사용 시간 ${fmt(EXAM_SEC-S.left)} / 15:00`;
+  $("stamp").innerHTML=`<div>${g}<small>${S.cheated?"부정행위":"학점"}</small></div>`;
+  $("sTotal").textContent=`${total} / 100`; $("sOx").textContent=`${ox} / 60`; $("sFb").textContent=`${fb} / 40`;
+  $("sUse").textContent=`${S.peekN} · ${S.warns}`;
+  const pool=S.cheated?["아쉽지만 부정행위예요. 위법수집 답안은 동의하더라도 증거능력이 없어요(2009도11401). 다음엔 같이 공부해요."]:COMMENTS[g[0]];
+  $("comment").textContent="원현호 교수님: “"+pool[Math.floor(Math.random()*pool.length)]+"”";
+  S.filter="all";$("fAll").setAttribute("aria-pressed","true");$("fWrong").setAttribute("aria-pressed","false");
+  renderItems();
+  setTimeout(()=>{$("paperWrap").hidden=true;$("hud").hidden=true;$("result").hidden=false;$("result").querySelector(".report").scrollTop=0},S.left<=0?1200:600);
+}
+function renderItems(){
+  let h="";
+  OX.forEach((q,i)=>{
+    const ok=isRight(i), mine=S.ox[i]===null?"무응답":(S.ox[i]?"O":"X");
+    if(S.filter==="wrong"&&ok)return;
+    h+=`<li class="item ${ok?"ok":"no"}"><div class="top"><span>${i+1}. O/X · ${esc(q.bank)}</span><span class="tag">${ok?"정답 +2":"오답"}</span></div>
+      <p class="q">${esc(q.q)}</p><p class="mine">정답 <b>${q.a?"O":"X"}</b> · 내 답 <b>${mine}</b>${S.hint[i]?" · 옆자리 메모 봄":""}</p>
+      <p class="exp">${esc(q.e)}<span class="src">출처: ${esc(q.s)}</span></p></li>`;
+  });
+  FB.forEach((q,k)=>{
+    const i=N_OX+k, fr=fbFrac(k), ok=fr===1, cir="①②③④⑤⑥";
+    if(S.filter==="wrong"&&ok)return;
+    let body=esc(q.parts[0]); q.blanks.forEach((b,j)=>{body+=`<mark class="ans">${esc(b.ans)}</mark>`+esc(q.parts[j+1])});
+    const mine=q.blanks.map((b,j)=>`${q.blanks.length>1?cir[j]+" ":""}<b>${S.fb[k][j]&&S.fb[k][j].trim()?esc(S.fb[k][j].trim()):"무응답"}</b> ${blankOk(q,j,S.fb[k][j])?"✓":"✗"}`).join(" · ");
+    h+=`<li class="item ${ok?"ok":"no"}"><div class="top"><span>${i+1}. 판례 빈칸${q.blanks.length>1?" ("+q.blanks.length+"칸)":""}</span><span class="tag">${ok?"정답 +4":fr>0?"일부만 맞음 (0점)":"오답"}</span></div>
+      <p class="q"><strong>${esc(q.c)}</strong><br>${body}</p>
+      <p class="mine">내 답 ${mine}${S.hint[i]?" · 옆자리 메모 봄":""}</p>
+      <p class="exp">${esc(q.e)}<span class="src">출처: ${esc(q.lec)} 강의안 형광펜·밑줄 부분</span></p></li>`;
+  });
+  $("items").innerHTML=h||`<li class="item ok"><p class="q">틀린 문항이 없어요. 원현호 교수님이 조용히 초코송이를 하나 더 건네십니다.</p></li>`;
+}
+$("fAll").onclick=()=>{S.filter="all";$("fAll").setAttribute("aria-pressed","true");$("fWrong").setAttribute("aria-pressed","false");renderItems()};
+$("fWrong").onclick=()=>{S.filter="wrong";$("fAll").setAttribute("aria-pressed","false");$("fWrong").setAttribute("aria-pressed","true");renderItems()};
+$("retryBtn").onclick=()=>{$("result").hidden=true;$("intro").hidden=false;S.phase="intro";$("nameIn").value=S.name==="응시자"?"":S.name};
+
+/* 고개 들기 / 옆자리 훔쳐보기 */
+let lookUp=false;
+$("lookBtn").onclick=()=>{lookUp=!lookUp;$("paper").classList.toggle("down",lookUp);$("lookBtn").textContent=lookUp?"시험지 보기":"고개 들기";if(lookUp){toast("화면을 클릭한 채로 끌면 교실을 둘러볼 수 있어요","#f3d9a0");if(Math.random()<.5)say("고개 든 학생, 화이트보드에 답은 없어요. 대신 응원은 해줄게요.",3200,true)}};
+let peekCd=0;
+$("peekBtn").onclick=()=>{
+  if(S.phase!=="exam"||peekCd>performance.now())return;
+  peekCd=performance.now()+1500; peekAnim=1;
+  if(prof.watching){
+    S.warns++; $("warns").textContent=`${S.warns}/3`; prof.alert=1.4;
+    if(S.warns>=3){S.cheated=true;say("아쉽지만 세 번째예요. 답안지는 제가 가져갈게요. 다음엔 같이 공부해요.",4200,true);toast("부정행위 적발. 시험 종료.");setTimeout(finish,900)}
+    else{say(["어… 거기 학생, 옆은 보지 말아요. 경고 한 번이에요.","또 봤네요. 경고 두 번째예요. 한 번만 더 하면 위법수집증거로 배제할 수밖에 없어요."][S.warns-1],4000,true);toast(`경고 ${S.warns}회 · 메모를 못 봤다`)}
+  }else{
+    const i=S.idx;
+    if(S.hint[i]){toast("이 문항 메모는 이미 봤다. 더 보면 위험해…","#f3d9a0");return}
+    S.hint[i]=true; S.peekN++;
+    setTimeout(()=>{if(S.phase!=="exam")return;renderQ();toast(`옆자리 ${i+1}번 여백 메모를 봤다!`,"#f3d9a0")},450);
+  }
+};
+let toastT=null;
+function toast(msg,bg){const t=$("toast");t.textContent=msg;t.style.background=bg||"#b72654";t.style.color=bg?"#3a0c1c":"#fff";t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2800)}
+
+/* ================= 교수님 말풍선 ================= */
+const IDLE_LINES=[
+ "제가 영동지청에 있을 때는요, 증거목록 착오기재 하나 때문에 밤을 샌 적이 있어요.",
+ "제가 영동지청에 있을 때 소재탐지촉탁을 몇 번 했는지 몰라요. 그래서 제314조는 엄격하게!",
+ "제가 영동지청에 있을 때 배운 건, 조서는 서명·날인부터 본다는 거예요.",
+ "제가 로스쿨에 다니던 때엔 형광펜을 하도 써서 교재가 노란색이었어요.",
+ "제가 로스쿨에 다니던 때엔 판례 전문을 소리 내서 읽었어요. 여러분도 해보세요.",
+ "제가 로스쿨에 다니던 때엔 시험 15분 전에 초코송이를 먹었어요. 효과는… 개인차가 있어요.",
+ "남은 초코송이는 다들 가져가세요. 시험 끝나고요.",
+ "초코송이는 교탁 위에 있어요. 지금 가지러 오면 안 되고요.",
+ "전문증거는 요증사실과의 관계에서 정해지는 상대적 개념이에요. 수업 때 말했죠?",
+ "모르는 문제는 일단 넘기고 나중에 다시 봐요.",
+ "형광펜 친 문장, 다 이유가 있어서 친 거예요.",
+ "뒤에 학생… 자는 건 아니죠? 끝나기 전에 깨워줄게요."
+];
+let bubbleT=0,bubbleOn=false,nextIdle=performance.now()+6000;
+function say(t,ms,force){if(!force&&bubbleOn)return;$("bubbleText").textContent=t;$("bubble").hidden=false;bubbleOn=true;bubbleT=performance.now()+(ms||3800)}
+
+/* ================= 3D 강의실 (충북대 로스쿨 강의실 사진 기반) ================= */
+let prof={watching:false,alert:0}, peekAnim=0, scribbleT=0;
+function scribble(){scribbleT=0.5}
+(function initScene(){
+  if(!window.THREE){$("loading").textContent="3D를 불러오지 못했어요. 시험은 그대로 볼 수 있어요.";return}
+  const canvas=$("scene");
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0xeeeee6);
+  const cam=new THREE.PerspectiveCamera(62,1,0.05,60);
+  const camPos=new THREE.Vector3(0,1.6,2.05); cam.position.copy(camPos);
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  scene.add(new THREE.HemisphereLight(0xffffff,0xb8b4a8,0.95));
+  const key=new THREE.DirectionalLight(0xfffaf0,0.55); key.position.set(3,6,4); key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:1,far:25}); scene.add(key);
+  const fill=new THREE.DirectionalLight(0xffffff,0.25); fill.position.set(-4,3,-2); scene.add(fill);
+
+  const L=c=>new THREE.MeshLambertMaterial({color:new THREE.Color(c).convertSRGBToLinear()});
+  const SM=(c,rough,metal)=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:rough??0.5,metalness:metal??0});
+  function box(w,h,d,mat,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(parent||scene).add(m);return m}
+  function cTex(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d");draw(g,w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return{t,g,c}}
+
+  /* ---- 바닥: 연회색 타일 + 진한 줄눈 ---- */
+  const floorT=cTex(256,256,(g)=>{g.fillStyle="#cfcdc6";g.fillRect(0,0,256,256);for(let i=0;i<900;i++){g.fillStyle=`rgba(${120+Math.random()*60|0},${120+Math.random()*60|0},${115+Math.random()*60|0},.12)`;g.fillRect(Math.random()*256,Math.random()*256,2,2)}g.strokeStyle="#6d6a66";g.lineWidth=5;g.strokeRect(0,0,256,256)}).t;
+  floorT.wrapS=floorT.wrapT=THREE.RepeatWrapping; floorT.repeat.set(16,18);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(10,11),new THREE.MeshLambertMaterial({map:floorT}));
+  floor.rotation.x=-Math.PI/2; floor.position.set(0,0,-0.9); floor.receiveShadow=true; scene.add(floor);
+
+  /* ---- 천장: 흰 텍스 + 점무늬, 원형 다운라이트, 빔프로젝터 박스 ---- */
+  const ceilT=cTex(256,256,(g)=>{g.fillStyle="#f3f2ee";g.fillRect(0,0,256,256);for(let i=0;i<260;i++){g.fillStyle=`rgba(60,60,60,${.25+Math.random()*.4})`;g.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*3,1+Math.random()*1.5)}g.strokeStyle="rgba(150,150,145,.6)";g.lineWidth=2;g.strokeRect(0,0,256,256)}).t;
+  ceilT.wrapS=ceilT.wrapT=THREE.RepeatWrapping; ceilT.repeat.set(16,18);
+  const H=3.0;
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(10,11),new THREE.MeshLambertMaterial({map:ceilT}));
+  ceil.rotation.x=Math.PI/2; ceil.position.set(0,H,-0.9); scene.add(ceil);
+  const lightM=new THREE.MeshBasicMaterial({color:0xffffff}), ringM=L(0xd9d9d6);
+  // 천장 조명: 가로·세로 2.8m 간격의 3×4 바둑판 배열 (빔프로젝터 박스 자리만 비움)
+  const lightPos=[];[-4.2,-1.4,1.4,4.2].forEach(z=>[-2.8,0,2.8].forEach(x=>{if(!(x===0&&z===-4.2))lightPos.push([x,z])}));
+  lightPos.forEach(([x,z])=>{
+    const r=new THREE.Mesh(new THREE.CircleGeometry(0.2,28),ringM);r.rotation.x=Math.PI/2;r.position.set(x,H-0.005,z);scene.add(r);
+    const l=new THREE.Mesh(new THREE.CircleGeometry(0.15,28),lightM);l.rotation.x=Math.PI/2;l.position.set(x,H-0.01,z);scene.add(l);
+  });
+  box(3.0,0.08,1.7,L(0xf7f7f4),0,H-0.04,-4.3); box(2.6,0.04,1.3,L(0xffffff),0,H-0.09,-4.3);
+  box(1.15,0.03,0.42,L(0x7d7f80),0,H-0.1,-4.45); box(0.55,0.1,0.28,L(0xf2f2f0),0,H-0.16,-4.45);
+  box(0.08,0.55,0.08,L(0xf2f0e6),0,H-0.3,-6.33); // 전선 몰딩
+
+  /* ---- 벽: 연한 민트 크림, 검정 걸레받이 ---- */
+  const wallM=L(0xe2e8d4), sideM=L(0xe6eadb), base=L(0x1b1b1b);
+  box(10,H,0.2,wallM,0,H/2,-6.45); box(0.2,H,11,sideM,-4.95,H/2,-0.9); box(0.2,H,11,sideM,4.95,H/2,-0.9); box(10,H,0.2,sideM,0,H/2,4.6);
+  box(10,0.12,0.04,base,0,0.06,-6.33); box(0.04,0.12,11,base,-4.83,0.06,-0.9); box(0.04,0.12,11,base,4.83,0.06,-0.9);
+  box(0.24,0.62,0.16,L(0xf4f4f2),-4.1,2.45,-6.27); box(0.18,0.5,0.01,L(0xdedede),-4.1,2.45,-6.185); // 스피커
+  box(0.12,0.16,0.02,L(0xf2f2f0),3.6,0.55,-6.33); // 콘센트
+
+  /* ---- 화이트보드 3면 (알루미늄 프레임) ---- */
+  const alu=SM(0xbfc4c9,0.35,0.6), boardM=()=>new THREE.MeshStandardMaterial({roughness:0.22,metalness:0});
+  function whiteboard(cx,w,draw){
+    const h=1.78, y=1.8, z=-6.32;
+    box(w+0.08,h+0.08,0.05,alu,cx,y,z);
+    const tex=cTex(Math.round(w*300),Math.round(h*300),(g,W,Hh)=>{g.fillStyle="#f7f8f7";g.fillRect(0,0,W,Hh);const gr=g.createLinearGradient(0,0,W,Hh);gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(.5,"rgba(255,255,255,.55)");gr.addColorStop(.6,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,W,Hh);if(draw)draw(g,W,Hh)});
+    const m=boardM(); m.map=tex.t; m.color=new THREE.Color(0xffffff);
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),m); p.position.set(cx,y,z+0.03); scene.add(p);
+    box(w,0.04,0.09,alu,cx,y-h/2-0.02,z+0.05);
+    return tex;
+  }
+  const marker='"Nanum Pen Script", cursive';
+  const boards=[];
+  function fit(g,txt,x,y,maxW,size,color,align){g.textAlign=align||"left";let s=size;do{g.font=`${s}px ${marker}`;s-=3}while(g.measureText(txt).width>maxW&&s>18);g.fillStyle=color;g.fillText(txt,x,y)}
+  // 붙어 있는 화이트보드 3면: 왼쪽·오른쪽은 비우고 가운데에만 판서
+  boards.push([whiteboard(-2.875,2.0,null),()=>{}]);
+  boards.push([whiteboard(0,3.75,null),(g,W,Hh)=>{
+    const m=W-140;
+    fit(g,"공판절차론 중간고사",70,120,m,92,"#b72654");
+    fit(g,"· 시험시간 15분 / 휴대폰 OFF",80,205,m,54,"#1f1f1f");
+    fit(g,"· 옆 사람 답안지 = 위법수집증거",80,272,m,54,"#1f1f1f");
+    fit(g,"· 동의해도 증거능력 없음 (2009도11401)",80,339,m,54,"#1f1f1f");
+    // 아래 한 줄: 위 항목과 같은 크기, 글자 폭에 딱 맞춘 밑줄
+    const msg="원현호는 당장 충북로 모든 과목을 강의하라";
+    fit(g,msg,W-80,450,m,54,"#1f3f8f","right");
+    const mw=g.measureText(msg).width;
+    g.strokeStyle="#1f3f8f";g.lineWidth=5;g.lineCap="round";g.beginPath();g.moveTo(W-80-mw,466);g.quadraticCurveTo(W-80-mw/2,472,W-80,464);g.stroke();
+  }]);
+  boards.push([whiteboard(2.875,2.0,null),()=>{}]);
+  // 세 칸을 구분하는 알루미늄 세로 프레임
+  [-1.875,1.875].forEach(x=>{box(0.07,1.9,0.08,alu,x,1.8,-6.29);box(0.02,1.86,0.085,SM(0x8d939a,0.4,0.6),x,1.8,-6.288)});
+  function drawBoards(){boards.forEach(([tex,fn])=>{const W=tex.c.width,Hh=tex.c.height,g=tex.g;g.fillStyle="#f7f8f7";g.fillRect(0,0,W,Hh);const gr=g.createLinearGradient(0,0,W,Hh);gr.addColorStop(0,"rgba(255,255,255,0)");gr.addColorStop(.5,"rgba(230,232,232,.6)");gr.addColorStop(.62,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(0,0,W,Hh);g.textAlign="left";fn(g,W,Hh);tex.t.needsUpdate=true})}
+  drawBoards();
+  if(document.fonts&&document.fonts.load){document.fonts.load(`80px "Nanum Pen Script"`).then(drawBoards).catch(()=>{})}
+  box(0.22,0.06,0.07,L(0x333333),3.1,0.92,-6.24); box(0.12,0.05,0.06,L(0xd23b3b),3.0,0.95,-6.24); // 지우개·마커
+
+  /* ---- 오른쪽 이동식 교탁 + 초코송이 ---- */
+  const metal=SM(0xc9ccd0,0.35,0.5), woodTop=L(0xe0c8a6);
+  box(0.06,0.95,0.06,metal,3.95,0.5,-4.9); box(0.6,0.04,0.5,metal,3.95,0.03,-4.9);
+  const lt=box(0.75,0.04,0.5,woodTop,3.95,1.02,-4.85); lt.rotation.x=0.18;
+  box(0.16,0.07,0.12,L(0xd8452f),3.85,1.08,-4.88); box(0.12,0.04,0.1,L(0x3a2418),4.08,1.07,-4.82);
+
+  /* ---- 책상(2인 연결형, 원목 상판·회색 다리·캐스터) & 의자(검정 메쉬·파란 시트) ---- */
+  const deskTop=L(0xe2c9a6), deskEdge=L(0xd3b791), grey=SM(0xa9adb2,0.4,0.5), dark=L(0x2a2a2a), panel=L(0x8e9297);
+  // 두 점을 잇는 금속관
+  const _a=new THREE.Vector3(),_b=new THREE.Vector3(),_up=new THREE.Vector3(0,1,0);
+  function tube(x1,y1,z1,x2,y2,z2,r,mat,parent){_a.set(x1,y1,z1);_b.set(x2,y2,z2);const len=_a.distanceTo(_b);
+    const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,10),mat);m.position.copy(_a).add(_b).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(_up,_b.clone().sub(_a).normalize());m.castShadow=true;(parent||scene).add(m);return m}
+  // 바퀴(캐스터): 회색 포크 + 검은 바퀴
+  const wheelGeo=new THREE.CylinderGeometry(0.028,0.028,0.024,14);
+  function caster(x,z,parent){const p=parent||scene;box(0.03,0.03,0.03,grey,x,0.075,z,p);const w=new THREE.Mesh(wheelGeo,dark);w.rotation.z=Math.PI/2;w.position.set(x,0.028,z+0.012);p.add(w)}
+  // 책상: 양옆 기둥이 아래에서 'ㅅ'자로 갈라져 앞뒤 바퀴로
+  function desk(x,z){
+    box(0.9,0.045,0.55,deskTop,x,0.745,z);
+    box(0.84,0.16,0.02,panel,x,0.62,z+0.2);
+    [-0.4,0.4].forEach(dx=>{const X=x+dx;
+      box(0.05,0.05,0.5,grey,X,0.7,z);                 // 상판 아래 받침
+      tube(X,0.72,z,X,0.3,z,0.022,grey);               // 기둥
+      tube(X,0.31,z,X,0.09,z-0.23,0.018,grey);         // ㅅ 앞다리
+      tube(X,0.31,z,X,0.09,z+0.23,0.018,grey);         // ㅅ 뒷다리
+      caster(X,z-0.23); caster(X,z+0.23);
+    });
+  }
+  const meshTex=cTex(64,64,(g)=>{g.fillStyle="#1b1c1f";g.fillRect(0,0,64,64);g.fillStyle="#3a3c41";for(let y=4;y<64;y+=8)for(let x=4;x<64;x+=8){g.beginPath();g.arc(x+(y%16?4:0),y,1.8,0,7);g.fill()}}).t;
+  meshTex.wrapS=meshTex.wrapT=THREE.RepeatWrapping; meshTex.repeat.set(4,3);
+  const backM=new THREE.MeshLambertMaterial({map:meshTex}), seatM=L(0x2f6fd0), frameM=L(0x1c1c1c);
+  // 사진 속 의자: 파란 방석 + 검은 쉘, 회색 금속봉으로 좌석과 이어진 검정 메쉬 등판(살짝 뒤로 기움), 고리형 팔걸이, 회색 다리+캐스터
+  function chair(x,z,wx){
+    const g=new THREE.Group(); g.position.set(x,0,z); g.scale.x=wx||1.35; scene.add(g);   // 앉은 사람보다 넓게
+    box(0.5,0.035,0.48,frameM,0,0.425,0,g);                       // 좌석 쉘
+    const cushion=box(0.46,0.06,0.44,seatM,0,0.47,-0.01,g);        // 파란 방석
+    // 등판: 좌석 뒤끝(z=+0.22, y=0.44) 기준, 뒤로 약 7도
+    const back=new THREE.Group(); back.position.set(0,0.44,0.22); back.rotation.x=0.12; g.add(back);
+    // 등판 패널은 좌석에서 떠 있고, 양옆 회색 금속봉이 좌석과 등판을 잇는다
+    [-0.25,0.25].forEach(dx=>{const r=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.25,10),grey);r.position.set(dx,0.12,0.01);back.add(r);box(0.04,0.04,0.05,frameM,(dx>0?1:-1)*0.232,0.235,0.005,back)});  // 좌석→팔걸이 높이까지만 오는 회색 봉 + 등판 연결 브래킷
+    box(0.48,0.045,0.045,frameM,0,0.6,0,back);                     // 윗테
+    box(0.48,0.045,0.045,frameM,0,0.16,0,back);                    // 아랫테(좌석 위로 떠 있음)
+    [-0.218,0.218].forEach(dx=>box(0.04,0.48,0.045,frameM,dx,0.38,0,back));  // 옆테
+    box(0.4,0.42,0.02,backM,0,0.38,0,back);                        // 메쉬
+    // 팔걸이: 등판 기둥에서 앞으로 뻗었다가 좌석으로 내려오는 고리
+    [-0.25,0.25].forEach(dx=>{
+      box(0.035,0.035,0.38,frameM,dx,0.68,0.07,g);                 // 위 팔걸이(뒤끝이 회색 봉 위에 얹힘)
+      box(0.035,0.2,0.035,frameM,dx,0.585,-0.11,g);                // 앞 지지대
+      box(0.035,0.035,0.12,frameM,dx,0.49,-0.06,g);                // 좌석 쪽 연결
+    });
+    // 다리: 좌석 양옆 아래에서 'ㅅ'자로 앞뒤로 벌어진 회색 관 + 바퀴
+    [-0.2,0.2].forEach(dx=>{
+      tube(dx,0.42,0,dx,0.09,-0.22,0.016,grey,g);
+      tube(dx,0.42,0,dx,0.09,0.22,0.016,grey,g);
+      caster(dx,-0.22,g); caster(dx,0.22,g);
+    });
+    box(0.42,0.025,0.025,grey,0,0.36,0,g);   // 좌석 아래 가로대
+  }
+
+
+  /* ---- 캐릭터: 단순한 블록 인형 (큰 이목구비) ---- */
+  const geoCache={};
+  function rgeo(w,h,d,r){
+    const k=[w,h,d,r].join("|"); if(geoCache[k])return geoCache[k];
+    r=Math.min(r,w/2-0.002,h/2-0.002,d/2-0.002);
+    const eps=0.00001, rad=r-eps, sh=new THREE.Shape();
+    sh.absarc(eps,eps,eps,-Math.PI/2,-Math.PI,true); sh.absarc(eps,h-rad*2,eps,Math.PI,Math.PI/2,true);
+    sh.absarc(w-rad*2,h-rad*2,eps,Math.PI/2,0,true); sh.absarc(w-rad*2,eps,eps,0,-Math.PI/2,true);
+    const g=new THREE.ExtrudeBufferGeometry(sh,{depth:Math.max(0.001,d-r*2),bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:rad,bevelThickness:r,curveSegments:3});
+    g.center(); geoCache[k]=g; return g;
+  }
+  function part(w,h,d,r,mat,x,y,z,parent){const m=new THREE.Mesh(rgeo(w,h,d,r),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+  function flat(pts,mat,x,y,z,parent,depth){const s=new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1])));const m=new THREE.Mesh(new THREE.ExtrudeBufferGeometry(s,{depth:depth||0.008,bevelEnabled:false}),mat);m.position.set(x,y,z);parent.add(m);return m}
+  function joint(x,y,z,parent){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g}
+  const HR=0.215, HH=0.42;
+  const headGeo=(()=>{const r=HR,h=HH,b=0.07,pts=[new THREE.Vector2(0,-h/2)];for(let i=0;i<=6;i++){const a=-Math.PI/2+i/6*Math.PI/2;pts.push(new THREE.Vector2(r-b+Math.cos(a)*b,-h/2+b+Math.sin(a)*b))}for(let i=0;i<=6;i++){const a=i/6*Math.PI/2;pts.push(new THREE.Vector2(r-b+Math.cos(a)*b,h/2-b+Math.sin(a)*b))}pts.push(new THREE.Vector2(0,h/2));return new THREE.LatheBufferGeometry(pts,36)})();
+  const css=c=>"#"+new THREE.Color(c).getHexString();
+
+  // 큰 눈·굵은 눈썹·큰 입: 512x256 캔버스가 머리 앞면을 감쌉니다
+  // 교수님: 로블록스식 작은 이목구비
+  function drawClassic(g,o,mood){
+    g.fillStyle=o.skinCss; g.fillRect(0,0,512,256);
+    const ink="#1b1b1b", ex=[214,298], ey=114;
+    g.fillStyle=ink; g.strokeStyle=ink; g.lineCap="round";
+    if(mood==="happy"){g.lineWidth=10;ex.forEach(x=>{g.beginPath();g.arc(x,ey+10,14,1.15*Math.PI,1.85*Math.PI);g.stroke()})}
+    else ex.forEach(x=>{g.beginPath();g.ellipse(x,ey,mood==="shock"?11:9,mood==="shock"?19:16,0,0,7);g.fill()});
+    g.lineWidth=7;
+    const t={shock:-6,angry:10}[mood]??-2;
+    g.beginPath();g.moveTo(196,76-t*0.2);g.lineTo(230,74+t);g.moveTo(282,74+t);g.lineTo(316,76-t*0.2);g.stroke();
+    g.lineWidth=8;
+    if(mood==="shock"){g.fillStyle="#5a1420";g.beginPath();g.ellipse(256,184,12,15,0,0,7);g.fill()}
+    else if(mood==="happy"){g.fillStyle="#5a1420";g.beginPath();g.moveTo(226,172);g.quadraticCurveTo(256,206,286,172);g.closePath();g.fill()}
+    else{g.beginPath();g.moveTo(226,174);g.quadraticCurveTo(256,198,286,174);g.stroke()}
+  }
+  function drawFace(g,o,mood){
+    if(o.classic)return drawClassic(g,o,mood);
+    g.fillStyle=o.skinCss; g.fillRect(0,0,512,256);
+    const ink="#161616", E=[[190,104],[322,104]], R=40;
+    g.lineCap="round"; g.lineJoin="round";
+    // cheeks
+    g.fillStyle="rgba(235,110,110,.28)"; g.beginPath(); g.ellipse(132,168,30,16,0,0,7); g.ellipse(380,168,30,16,0,0,7); g.fill();
+    // eyes
+    if(mood==="happy"||mood==="sleep"){
+      g.strokeStyle=ink; g.lineWidth=14;
+      E.forEach(([x,y])=>{g.beginPath(); if(mood==="happy")g.arc(x,y+16,30,1.12*Math.PI,1.88*Math.PI); else {g.moveTo(x-30,y+6);g.quadraticCurveTo(x,y+26,x+30,y+6)} g.stroke()});
+    }else{
+      const ry=mood==="angry"?28:(mood==="shock"?46:R);
+      E.forEach(([x,y],i)=>{
+        g.fillStyle="#fff"; g.strokeStyle=ink; g.lineWidth=6; g.beginPath(); g.ellipse(x,y,R-2,ry,0,0,7); g.fill(); g.stroke();
+        const pr=mood==="shock"?11:18, dx=o.look||(i?-6:6);
+        g.fillStyle=ink; g.beginPath(); g.arc(x+dx,y+6,pr,0,7); g.fill();
+        g.fillStyle="#fff"; g.beginPath(); g.arc(x+dx+6,y-1,5,0,7); g.fill();
+      });
+    }
+    // brows (thick)
+    g.strokeStyle=o.brow||ink; g.lineWidth=17;
+    const t={angry:18,stern:10,shock:-14,happy:-8,sleep:0}[mood]??(o.browTilt||-4);
+    g.beginPath(); g.moveTo(150,46-t*0.3); g.quadraticCurveTo(190,30-t*0.5,226,42+t); g.moveTo(286,42+t); g.quadraticCurveTo(322,30-t*0.5,362,46-t*0.3); g.stroke();
+    // nose
+    g.strokeStyle="rgba(120,60,40,.45)"; g.lineWidth=6; g.beginPath(); g.moveTo(256,130); g.quadraticCurveTo(246,152,262,156); g.stroke();
+    // mouth (big)
+    const mouth=mood==="normal"?(o.mouth||"grin"):mood;
+    g.strokeStyle=ink; g.lineWidth=8;
+    if(mouth==="grin"||mouth==="happy"){
+      g.fillStyle="#5a1420"; g.beginPath(); g.moveTo(180,170); g.quadraticCurveTo(256,262,332,170); g.closePath(); g.fill(); g.stroke();
+      g.fillStyle="#fff"; g.beginPath(); g.moveTo(186,174); g.lineTo(326,174); g.quadraticCurveTo(320,190,300,194); g.lineTo(212,194); g.quadraticCurveTo(192,190,186,174); g.fill();
+      g.fillStyle="#e86a7a"; g.beginPath(); g.ellipse(256,226,30,13,0,0,7); g.fill();
+    }else if(mouth==="smirk"){
+      g.beginPath(); g.moveTo(206,192); g.quadraticCurveTo(262,214,316,176); g.stroke();
+    }else if(mouth==="shock"||mouth==="o"){
+      g.fillStyle="#5a1420"; g.beginPath(); g.ellipse(256,200,mouth==="shock"?32:22,mouth==="shock"?40:26,0,0,7); g.fill(); g.stroke();
+    }else if(mouth==="angry"){
+      g.fillStyle="#5a1420"; g.beginPath(); g.moveTo(200,214); g.quadraticCurveTo(256,160,312,214); g.closePath(); g.fill(); g.stroke();
+    }else if(mouth==="sleep"){
+      g.fillStyle="#5a1420"; g.beginPath(); g.ellipse(256,206,14,18,0,0,7); g.fill();
+    }else{ g.beginPath(); g.moveTo(210,196); g.lineTo(302,196); g.stroke(); }
+  }
+
+  function character(o){
+    o.skinCss=css(o.skin);
+    const root=new THREE.Group(); scene.add(root);
+    const skin=SM(o.skin,0.5), top=SM(o.top,0.55), pants=SM(o.pants,0.6);
+    const shoeM=SM(o.shoe||0x1e1e1e,0.3,0.1);
+    // legs
+    const mkLeg=sx=>{const hip=joint(sx*0.17,0.72,0,root);part(0.33,0.62,0.34,0.04,pants,0,-0.31,0,hip);part(0.335,0.1,0.38,0.035,shoeM,0,-0.67,0.02,hip);return hip};
+    const legL=mkLeg(-1), legR=mkLeg(1);
+    const torso=part(0.68,0.72,0.34,0.04,top,0,1.08,0,root);
+    if(o.suit){
+      const shirt=SM(0xf7f7f5,0.6), tie=SM(o.tie,0.45), lap=SM(o.lapel,0.5), T=1.44, Z=0.171;
+      part(0.7,0.2,0.36,0.04,top,0,0.66,0,root);                                            // 재킷 밑단(골반을 덮음)
+      flat([[-0.13,0],[0.13,0],[0,-0.46]],shirt,0,T,Z,root);                                 // 셔츠 V
+      flat([[-0.13,0],[-0.025,0],[-0.075,-0.1]],shirt,0,T,Z+0.012,root);                    // 칼라
+      flat([[0.025,0],[0.13,0],[0.075,-0.1]],shirt,0,T,Z+0.012,root);
+      flat([[-0.045,-0.015],[0.045,-0.015],[0.03,-0.08],[-0.03,-0.08]],tie,0,T,Z+0.016,root);   // 넥타이 매듭
+      flat([[-0.03,-0.08],[0.03,-0.08],[0.058,-0.38],[0,-0.44],[-0.058,-0.38]],tie,0,T,Z+0.014,root); // 넥타이
+      flat([[-0.13,0],[-0.25,-0.04],[-0.06,-0.5],[0,-0.46]],lap,0,T,Z+0.004,root);             // 라펠
+      flat([[0.13,0],[0,-0.46],[0.06,-0.5],[0.25,-0.04]],lap,0,T,Z+0.004,root);
+      flat([[0.14,-0.2],[0.25,-0.2],[0.24,-0.15],[0.19,-0.12],[0.15,-0.16]],shirt,0,T,Z+0.004,root); // 행커치프
+      [0.92,0.82].forEach(y=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.012,14),SM(0x0f0f12,0.3));b.rotation.x=Math.PI/2;b.position.set(0,y,Z+0.006);root.add(b)});
+      [-0.19,0.19].forEach(x=>part(0.2,0.025,0.02,0.008,lap,x,0.71,0.18,root));          // 주머니 덮개
+    }
+    if(o.hood)part(0.44,0.14,0.12,0.05,top,0,1.42,-0.16,root);
+    if(o.stripe)part(0.685,0.09,0.345,0.03,SM(o.stripe),0,1.06,0,root);
+    // arms
+    const mkArm=sx=>{const sh=joint(sx*0.51,1.44,0,root);
+      if(o.armSkin){part(0.33,0.72,0.34,0.04,skin,0,-0.36,0,sh)}
+      else{part(0.33,0.56,0.34,0.04,top,0,-0.28,0,sh); if(o.suit)part(0.31,0.05,0.32,0.02,SM(0xf7f7f5),0,-0.585,0,sh); part(0.31,0.12,0.32,0.04,skin,0,-0.665,0,sh)}
+      return sh};
+    const armL=mkArm(-1), armR=mkArm(1);
+    // head
+    const head=joint(0,1.68,0,root);
+    const hm=new THREE.Mesh(headGeo,skin); hm.castShadow=true; head.add(hm);
+    const fc=document.createElement("canvas"); fc.width=512; fc.height=256; const fg=fc.getContext("2d"); drawFace(fg,o,o.mood||"normal");
+    const ft=new THREE.CanvasTexture(fc); ft.encoding=THREE.sRGBEncoding; ft.anisotropy=4;
+    head.add(new THREE.Mesh(new THREE.CylinderBufferGeometry(HR+0.002,HR+0.002,HH-0.15,36,1,true,-1.2,2.4),new THREE.MeshStandardMaterial({map:ft,roughness:0.5})));
+    // hair
+    const hc=SM(o.hairColor||0x1d1714,0.6), st=o.hair;
+    if(st==="prof"){
+      part(0.47,0.1,0.47,0.04,hc,0,0.235,-0.01,head);
+      part(0.3,0.1,0.2,0.04,hc,-0.07,0.29,0.11,head).rotation.z=0.18;
+      part(0.22,0.08,0.16,0.035,hc,0.12,0.28,0.12,head).rotation.z=-0.12;
+      part(0.47,0.3,0.12,0.04,hc,0,0.1,-0.18,head);
+      part(0.07,0.2,0.32,0.03,hc,-0.205,0.13,-0.03,head); part(0.07,0.2,0.32,0.03,hc,0.205,0.13,-0.03,head);
+      part(0.26,0.07,0.08,0.03,hc,-0.07,0.2,0.2,head).rotation.z=0.22;
+      if(o.bangs){ // 이마를 반쯤 덮는 옆으로 쓸어 넘긴 앞머리
+        [[-0.55,0.085,0.22],[-0.25,0.07,0.16],[0.04,0.05,0.1]].forEach(([th,h,rz])=>{
+          const g=new THREE.Group(); g.rotation.y=th; head.add(g);
+          const m=part(0.13,h,0.035,0.015,hc,0,0.205-h/2,HR+0.012,g); m.rotation.z=rz; });
+      }
+    }else if(st==="fringe"){ // 이마를 덮는 앞머리
+      part(0.47,0.11,0.47,0.04,hc,0,0.235,0,head); part(0.47,0.32,0.12,0.04,hc,0,0.09,-0.18,head);
+      part(0.07,0.24,0.34,0.03,hc,-0.205,0.11,-0.04,head); part(0.07,0.24,0.34,0.03,hc,0.205,0.11,-0.04,head);
+      [-0.95,-0.62,-0.3,0,0.3,0.62,0.95].forEach((th,i)=>{const g=new THREE.Group();g.rotation.y=th;head.add(g);const h=0.115+(i%2)*0.012;part(0.13,h,0.035,0.015,hc,0,0.21-h/2,HR+0.012,g)});
+    }else if(st==="short"){
+      part(0.46,0.1,0.46,0.04,hc,0,0.23,0,head); part(0.46,0.26,0.1,0.04,hc,0,0.11,-0.18,head); part(0.38,0.06,0.07,0.03,hc,0,0.19,0.2,head);
+    }else if(st==="long"){
+      part(0.47,0.11,0.47,0.04,hc,0,0.23,0,head); part(0.5,0.6,0.12,0.04,hc,0,-0.04,-0.19,head);
+      part(0.08,0.5,0.3,0.03,hc,-0.215,0,-0.06,head); part(0.08,0.5,0.3,0.03,hc,0.215,0,-0.06,head);
+    }else if(st==="bun"){
+      part(0.46,0.1,0.46,0.04,hc,0,0.23,0,head); part(0.46,0.26,0.1,0.04,hc,0,0.11,-0.18,head); part(0.18,0.16,0.16,0.06,hc,0,0.3,-0.2,head);
+    }else if(st==="cap"){
+      part(0.46,0.26,0.1,0.04,hc,0,0.06,-0.18,head);
+      const cm=SM(o.capColor||0xd8433a); const cap=new THREE.Mesh(new THREE.CylinderBufferGeometry(HR+0.02,HR+0.025,0.13,36),cm); cap.position.y=0.22; head.add(cap);
+      part(0.3,0.03,0.2,0.012,cm,0,0.17,-0.3,head);
+    }
+    if(o.glasses){ // 두꺼운 뿔테 안경
+      const fm=SM(0x2a1a12,0.35);
+      [-0.31,0.31].forEach(th=>{const g=new THREE.Group();g.rotation.y=th;head.add(g);const zz=HR+0.016,w=0.1,hh=0.075,t=0.018;
+        part(w,t,0.02,0.006,fm,0,0.025+hh/2,zz,g);part(w,t,0.02,0.006,fm,0,0.025-hh/2,zz,g);part(t,hh+t,0.02,0.006,fm,-w/2,0.025,zz,g);part(t,hh+t,0.02,0.006,fm,w/2,0.025,zz,g)});
+      part(0.05,0.014,0.02,0.005,fm,0,0.035,HR+0.02,head);
+      [-1,1].forEach(sx=>part(0.016,0.016,0.26,0.005,fm,sx*0.25,0.04,0.06,head));
+    }
+    const setMood=m=>{if(setMood.cur===m)return;setMood.cur=m;drawFace(fg,o,m);ft.needsUpdate=true};
+    return {root,head,torso,legL,legR,armL,armR,setMood};
+  }
+
+  /* ---- 원현호 교수님: 남색 정장, 흰 셔츠, 파란 넥타이, 볼륨 있는 검은 머리 ---- */
+  const P=character({skin:0xf3d3b8,top:0x1c2847,lapel:0x16203a,pants:0x1c2847,shoe:0x0e0e0e,suit:true,tie:0x4a72b6,hair:"prof",hairColor:0x17120f,classic:true,bangs:true});
+  P.root.scale.setScalar(1.12); P.root.position.set(-0.8,0,-4.55);
+  const exT=cTex(64,96,(g)=>{g.fillStyle="#e9c46a";g.strokeStyle="#2a0d14";g.lineWidth=6;g.font='bold 88px "Jua", sans-serif';g.textAlign="center";g.textBaseline="middle";g.strokeText("!",32,50);g.fillText("!",32,50)}).t;
+  const exSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:exT,transparent:true})); exSprite.scale.set(0.4,0.6,1); exSprite.position.set(0,2.45,0); exSprite.visible=false; P.root.add(exSprite);
+
+  /* ---- 좌석 배치 (사진처럼 좌우 2인 책상 블록, 가운데 통로) ---- */
+  const looks=[
+    {skin:0xf1c7a3,top:0xb72654,pants:0x1f2a44,hair:"short",hairColor:0x2b1a10,hood:true,mouth:"smirk"},
+    {skin:0xe9b994,top:0x2d6fcf,pants:0x2c3e50,hair:"long",hairColor:0x161210,armSkin:true,mouth:"o"},
+    {skin:0xf3d0b5,top:0x3fae66,pants:0x34495e,hair:"cap",hairColor:0x5a3a1c,capColor:0xb72654,mouth:"grin"},
+    {skin:0xd8a27c,top:0xf2a03d,pants:0x253041,hair:"bun",hairColor:0x1c1c1c,mouth:"flat"},
+    {skin:0xeec2a0,top:0x5a5f6a,pants:0x2d2d2d,hair:"short",hairColor:0x3b2414,stripe:0xb72654,mouth:"grin"},
+    {skin:0xf5d2b8,top:0xffffff,pants:0x30425c,hair:"long",hairColor:0x6b3f22,stripe:0x2d6fcf,mouth:"smirk"},
+    {skin:0xe6b894,top:0x7a1638,pants:0x2a2a40,hair:"short",hairColor:0x111111,hood:true,mouth:"sleep",sleep:true},
+    {skin:0xf0c49c,top:0x2f8f4e,pants:0x1e1e1e,hair:"bun",hairColor:0x2b1a10,armSkin:true,mouth:"o"}
+  ];
+  // 사진처럼 2인 책상 블록 3열: 왼쪽 [-3.3,-2.4] / 가운데(내 열) [-0.92,0] / 오른쪽 [1.45,2.35]
+  const rows=[-0.6,-2.35], cols=[-3.3,-2.4,-0.92,0,1.45,2.35];
+  const occupied=[[-0.92,-0.6,1],[2.35,-0.6,2],[-2.4,-0.6,3],[1.45,-2.35,4],[-3.3,-2.35,5],[-0.92,-2.35,6]];
+  rows.forEach(z=>cols.forEach(x=>{desk(x,z);chair(x,z+0.5)}));
+  const students=[];
+  function seat(x,z,lk){
+    const s=character(Object.assign({},lk)); const sc=0.85;
+    if(lk.big)s.root.scale.set(sc*1.2,sc*1.04,sc*1.18); else s.root.scale.setScalar(sc); s.root.position.set(x,0.5-0.72*sc*(lk.big?1.04:1),z+0.52); s.root.rotation.y=Math.PI;
+    s.legL.rotation.x=s.legR.rotation.x=-Math.PI/2;
+    s.armL.rotation.x=s.armR.rotation.x=-1.15; s.armL.rotation.z=0.05; s.armR.rotation.z=-0.05; s.head.rotation.x=0.18;
+    s.phase=Math.random()*6; s.sleepy=!!lk.sleep;
+    if(s.sleepy){s.armL.rotation.x=s.armR.rotation.x=-1.45;s.armL.rotation.z=0.35;s.armR.rotation.z=-0.35}
+    students.push(s); return s;
+  }
+  occupied.forEach(([x,z,i])=>seat(x,z,looks[i]));
+  // 내 자리 줄: 내 책상 + 왼쪽 빈 책상 + 오른쪽 옆자리 친구
+  desk(0,1.15); desk(-0.92,1.15); desk(1.45,1.15); chair(1.45,1.65,1.55);
+  // 오른쪽 옆자리 친구: 덩치 좋은 남학생, 검은 옷, 뿔테 안경, 이마를 덮는 앞머리
+  const neighbor=seat(1.45,1.15,{skin:0xf0c6a2,top:0x151515,pants:0x1b1b1d,shoe:0x111111,hair:"fringe",hairColor:0x141010,glasses:true,mouth:"smirk",big:true,brow:"#141010"});
+  // 펼친 책 (사진 왼쪽 아래)
+  // 내 책상 위 시험지 (고개를 들어도 보이도록 3D로)
+  const sheetT=cTex(512,700,(g)=>{g.fillStyle="#fbf7ec";g.fillRect(0,0,512,700);g.fillStyle="#b72654";g.fillRect(0,0,512,46);g.fillStyle="#fbf6ea";g.font='bold 22px "Nanum Myeongjo", serif';g.fillText("충북대학교 법학전문대학원",18,31);
+    g.fillStyle="#7a1638";g.font='bold 34px "Nanum Myeongjo", serif';g.fillText("공판절차론 중간고사",18,98);g.strokeStyle="#b72654";g.lineWidth=3;g.beginPath();g.moveTo(14,118);g.lineTo(498,118);g.stroke();
+    g.strokeStyle="#e6dccb";g.lineWidth=2;for(let y=160;y<690;y+=34){g.beginPath();g.moveTo(14,y);g.lineTo(498,y);g.stroke()}
+    g.fillStyle="#3b3330";for(let y=150;y<680;y+=34){if(Math.random()<.15)continue;g.fillRect(22,y-12,90+Math.random()*360,6)}
+    g.strokeStyle="#c3263b";g.lineWidth=4;[[440,186],[452,322],[446,458]].forEach(([x,y])=>{g.beginPath();g.ellipse(x,y,20,15,-.2,0,7);g.stroke()})}).t;
+  const sheet=new THREE.Mesh(new THREE.PlaneGeometry(0.44,0.6),new THREE.MeshLambertMaterial({map:sheetT}));
+  sheet.rotation.x=-Math.PI/2; sheet.rotation.z=0.06; sheet.position.set(0,0.769,1.1); sheet.receiveShadow=true; scene.add(sheet);
+  // 펜 (빨강, 초록/검정)
+  const pen=(c,x,z,ry)=>{const g=new THREE.Group();g.position.set(x,0.775,z);g.rotation.y=ry;scene.add(g);box(0.022,0.022,0.3,L(c),0,0,0,g);box(0.018,0.018,0.05,L(0x222222),0,0,-0.17,g);return g};
+  pen(0xc8202a,-0.28,1.3,0.9); pen(0x1d5a35,-0.62,1.36,1.1);
+  const pencil=pen(0x111111,0.3,1.0,0.5);
+  // 내 팔 (버건디 후드 소매)
+  const mySleeve=SM(0xb72654,0.6), mySkin=SM(0xf1c7a3,0.5);
+  [[-0.55,0.35],[0.55,-0.35]].forEach(([x,ry])=>{const g=new THREE.Group();g.position.set(x,0.84,1.4);g.rotation.y=ry;scene.add(g);part(0.24,0.2,0.62,0.06,mySleeve,0,0,0.08,g);part(0.25,0.21,0.08,0.03,SM(0x8a1a40),0,0,-0.24,g);part(0.2,0.14,0.2,0.06,mySkin,0,-0.01,-0.36,g)});
+
+  /* ---- 리사이즈 ---- */
+  function resize(){const w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.fov=w/h<0.8?72:62;cam.updateProjectionMatrix()}
+  new ResizeObserver(resize).observe(canvas); resize();
+
+  /* ---- 애니메이션 ---- */
+  let mode="walk",modeT=0,dir=1,t0=performance.now();
+  const tmpV=new THREE.Vector3(), bub=$("bubble");
+  const dirFront=new THREE.Vector3(0,-0.21,-1).normalize(), dirUp=new THREE.Vector3(0,0.05,-1).normalize();
+  // 고개 든 상태에서 클릭-드래그로 둘러보기
+  let yaw=0,pitch=0.05,drag=null;
+  canvas.addEventListener("pointerdown",e=>{if(!lookUp)return;drag={x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture(e.pointerId);canvas.classList.add("grabbing")});
+  canvas.addEventListener("pointermove",e=>{if(!drag)return;const k=2.4/Math.max(canvas.clientWidth,1);yaw=Math.max(-2.4,Math.min(2.4,drag.yaw-(e.clientX-drag.x)*k));pitch=Math.max(-0.75,Math.min(0.7,drag.pitch+(e.clientY-drag.y)*k))});
+  const endDrag=()=>{drag=null;canvas.classList.remove("grabbing")};
+  canvas.addEventListener("pointerup",endDrag); canvas.addEventListener("pointercancel",endDrag);
+  const dirLook=new THREE.Vector3();
+  const dirPeek=new THREE.Vector3(1.45,0.78-1.6,1.1-2.05).normalize(), dirNow=dirFront.clone(), tgt=new THREE.Vector3();
+  $("loading").hidden=true;
+
+  function frame(now){
+    const dt=Math.min(0.05,(now-t0)/1000); t0=now; const t=now/1000;
+    modeT-=dt;
+    if(modeT<=0){
+      if(mode==="walk"){const r=Math.random(); if(r<0.55){mode="watch";modeT=2.2+Math.random()*2.5}else{mode="board";modeT=2+Math.random()*2}}
+      else{mode="walk";modeT=3+Math.random()*4;if(Math.random()<.5)dir*=-1}
+    }
+    prof.watching=(mode==="watch")&&S.phase==="exam";
+    const pr=P.root; let targetRot=0, walking=false;
+    if(mode==="walk"){pr.position.x+=dir*dt*0.9; if(pr.position.x>2.6){pr.position.x=2.6;dir=-1} if(pr.position.x<-2.6){pr.position.x=-2.6;dir=1} targetRot=dir>0?Math.PI/2:-Math.PI/2; walking=true}
+    else if(mode==="watch"){tmpV.set(cam.position.x-pr.position.x,0,cam.position.z-pr.position.z);targetRot=Math.atan2(tmpV.x,tmpV.z)}
+    else targetRot=Math.PI*0.92;
+    let dr=targetRot-pr.rotation.y; while(dr>Math.PI)dr-=2*Math.PI; while(dr<-Math.PI)dr+=2*Math.PI;
+    pr.rotation.y+=dr*Math.min(1,dt*6);
+    const sw=walking&&!reduce?Math.sin(t*7)*0.5:0;
+    P.legL.rotation.x=sw; P.legR.rotation.x=-sw;
+    P.armL.rotation.x=mode==="watch"?-0.15:-sw*0.8;
+    P.armR.rotation.x=mode==="watch"?-0.15:(mode==="board"?-2.5:sw*0.8);
+    if(prof.alert>0){prof.alert-=dt;pr.position.y=Math.abs(Math.sin(prof.alert*10))*0.15;exSprite.visible=true}else{pr.position.y=0;exSprite.visible=false}
+    P.setMood(prof.alert>0?"shock":(mode==="watch"?"happy":"normal"));
+    P.head.rotation.y=mode==="walk"&&!reduce?Math.sin(t*0.9)*0.35:0;
+
+    students.forEach(s=>{
+      if(reduce)return;
+      if(s.sleepy){s.head.rotation.x=0.45+Math.sin(t*1.3+s.phase)*0.12}
+      else{const w=Math.sin(t*0.7+s.phase)>0?1:0;s.armR.rotation.x=-1.15+Math.sin(t*10+s.phase)*0.06*w;s.armR.rotation.z=-0.05+Math.sin(t*5+s.phase)*0.05*w;s.head.rotation.y=Math.sin(t*0.4+s.phase)*0.15}
+    });
+    if(scribbleT>0){scribbleT-=dt;pencil.position.x=0.3+Math.sin(t*40)*0.02;pencil.position.z=1.0+Math.cos(t*33)*0.015}
+
+    // camera: front / look-up / peek right
+    if(peekAnim>0)peekAnim=Math.max(0,peekAnim-dt*1.1);
+    const pk=Math.sin(Math.min(1,peekAnim)*Math.PI);
+    if(!lookUp){yaw*=0.85;pitch=0.05+(pitch-0.05)*0.85}
+    canvas.classList.toggle("grab",lookUp&&!drag);
+    dirLook.set(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
+    const base=lookUp?dirLook:dirFront;
+    tgt.copy(base).multiplyScalar(1-pk).addScaledVector(dirPeek,pk).normalize();
+    dirNow.lerp(tgt,Math.min(1,dt*6)).normalize();
+    cam.position.set(camPos.x+pk*0.25+(reduce?0:Math.sin(t*0.6)*0.008),camPos.y+(reduce?0:Math.sin(t*0.9)*0.006),camPos.z);
+    tmpV.copy(cam.position).addScaledVector(dirNow,5); cam.lookAt(tmpV);
+
+    if(S.phase==="exam"&&now>nextIdle){say(IDLE_LINES[Math.floor(Math.random()*IDLE_LINES.length)],4600);nextIdle=now+11000+Math.random()*9000}
+    if(S.phase==="intro"&&now>nextIdle){say(["다들 자리에 앉으세요. 곧 시작해요.","책은 넣고, 형광펜도 넣어요.","남은 초코송이는 시험 끝나고 가져가세요.","이름 쓰고 시작 버튼 누르세요."][Math.floor(Math.random()*4)],3800);nextIdle=now+8000}
+    if(bubbleOn){
+      if(now>bubbleT){bubbleOn=false;bub.hidden=true}
+      else{
+        tmpV.set(0,2.3,0).applyMatrix4(pr.matrixWorld).project(cam);
+        const w=canvas.clientWidth,h=canvas.clientHeight; let x=(tmpV.x*.5+.5)*w, y=(-tmpV.y*.5+.5)*h;
+        const half=Math.min(160,w*.36); x=Math.max(half+8,Math.min(w-half-8,x)); y=Math.max(118,Math.min(h*0.42,y));
+        bub.style.left=x+"px"; bub.style.top=y+"px";
+      }
+    }
+    renderer.render(scene,cam);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
